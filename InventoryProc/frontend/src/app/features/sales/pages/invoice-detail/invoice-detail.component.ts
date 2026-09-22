@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -25,7 +25,8 @@ export class InvoiceDetailComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private invoiceService: InvoiceService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) {
     this.initializePaymentForm();
   }
@@ -57,11 +58,13 @@ export class InvoiceDetailComponent implements OnInit {
           this.errorMessage = response.message || 'Failed to load invoice';
         }
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Error loading invoice:', error);
         this.errorMessage = 'Failed to load invoice';
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
