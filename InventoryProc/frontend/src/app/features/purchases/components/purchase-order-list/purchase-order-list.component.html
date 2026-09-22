@@ -1,0 +1,118 @@
+<div class="po-list-container">
+  <div class="header">
+    <h1>Purchase Orders</h1>
+    <div class="header-actions">
+      <button class="btn btn-primary" routerLink="/purchases/purchase-orders/new">
+        <span>+</span> New Purchase Order
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="applyFilters()"
+        placeholder="Search by order number or vendor..."
+        class="search-input"
+      />
+      <select class="form-control" (change)="onStatusFilterChange($event)">
+        <option value="">All Statuses</option>
+        <option [value]="PurchaseOrderStatus.Draft">Draft</option>
+        <option [value]="PurchaseOrderStatus.Approved">Approved</option>
+        <option [value]="PurchaseOrderStatus.PartiallyReceived">Partially Received</option>
+        <option [value]="PurchaseOrderStatus.FullyReceived">Fully Received</option>
+        <option [value]="PurchaseOrderStatus.Closed">Closed</option>
+        <option [value]="PurchaseOrderStatus.Cancelled">Cancelled</option>
+      </select>
+      <button class="btn btn-secondary" (click)="applyFilters()">Filter</button>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    Loading purchase orders...
+  </div>
+
+  <div *ngIf="!loading && filteredOrders.length === 0" class="no-data">
+    <p>No purchase orders found.</p>
+    <button class="btn btn-primary" routerLink="/purchases/purchase-orders/new">Create Your First Purchase Order</button>
+  </div>
+
+  <div *ngIf="!loading && filteredOrders.length > 0" class="po-grid">
+    <div class="po-card" *ngFor="let order of filteredOrders">
+      <div class="po-header">
+        <h3>{{ order.orderNumber }}</h3>
+        <span class="badge" [ngClass]="getStatusClass(order.status)">
+          {{ getStatusLabel(order.status) }}
+        </span>
+      </div>
+
+      <div class="po-info">
+        <div class="info-row">
+          <span class="label">Vendor:</span>
+          <span class="value">{{ order.vendorName }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Order Date:</span>
+          <span class="value">{{ order.orderDate | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Expected Delivery:</span>
+          <span class="value">{{ order.expectedDeliveryDate ? (order.expectedDeliveryDate | date:'dd/MM/yyyy') : '-' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Items:</span>
+          <span class="value">{{ order.items.length }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Total Amount:</span>
+          <span class="value price">{{ order.totalAmount | currency:'INR' }}</span>
+        </div>
+      </div>
+
+      <div class="po-actions">
+        <button class="btn btn-sm btn-secondary" [routerLink]="['/purchases/purchase-orders', order.id]">
+          View
+        </button>
+        <button
+          *ngIf="order.status === PurchaseOrderStatus.Draft"
+          class="btn btn-sm btn-secondary"
+          [routerLink]="['/purchases/purchase-orders', order.id, 'edit']">
+          Edit
+        </button>
+        <button
+          *ngIf="order.status === PurchaseOrderStatus.Draft"
+          class="btn btn-sm btn-success"
+          (click)="approvePurchaseOrder(order.id, order.orderNumber)"
+          title="Approve">
+          Approve
+        </button>
+        <button
+          *ngIf="order.status === PurchaseOrderStatus.FullyReceived"
+          class="btn btn-sm btn-secondary"
+          (click)="closePurchaseOrder(order.id, order.orderNumber)"
+          title="Close">
+          Close
+        </button>
+        <button
+          *ngIf="order.status === PurchaseOrderStatus.Draft || order.status === PurchaseOrderStatus.Approved"
+          class="btn btn-sm btn-warning"
+          (click)="cancelPurchaseOrder(order.id, order.orderNumber)"
+          title="Cancel">
+          Cancel
+        </button>
+        <button
+          *ngIf="order.status === PurchaseOrderStatus.Draft"
+          class="btn btn-sm btn-danger"
+          (click)="deletePurchaseOrder(order.id, order.orderNumber)">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

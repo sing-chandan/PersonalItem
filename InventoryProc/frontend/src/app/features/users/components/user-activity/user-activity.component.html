@@ -1,0 +1,62 @@
+<div class="user-activity-container">
+  <div class="header">
+    <div>
+      <h1>Activity Logs</h1>
+      <p class="subtitle" *ngIf="user">User: {{ user.fullName }} ({{ user.email }})</p>
+      <p class="subtitle" *ngIf="!user">Loading user information...</p>
+    </div>
+    <a routerLink="/users" class="btn btn-secondary">
+      Back to Users
+    </a>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!loading && !error" class="activity-section">
+    <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Action</th>
+              <th>Entity Type</th>
+              <th>Entity ID</th>
+              <th>Description</th>
+              <th>IP Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of activityLogs">
+              <td>{{ log.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+              <td>
+                <span class="badge" [ngClass]="getActionBadgeClass(log.action)">
+                  {{ log.action }}
+                </span>
+              </td>
+              <td>{{ log.entityType }}</td>
+              <td>
+                <small class="text-muted font-monospace">{{ log.entityId || '-' }}</small>
+              </td>
+              <td>{{ log.description || '-' }}</td>
+              <td>{{ log.ipAddress || '-' }}</td>
+            </tr>
+            <tr *ngIf="activityLogs.length === 0">
+              <td colspan="6" class="text-center text-muted">No activity logs found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    <div *ngIf="activityLogs.length === pageSize" class="text-center mt-3">
+      <p class="text-muted">Showing last {{ pageSize }} activities</p>
+    </div>
+  </div>
+</div>

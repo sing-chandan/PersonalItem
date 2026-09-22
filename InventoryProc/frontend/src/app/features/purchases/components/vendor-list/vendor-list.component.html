@@ -1,0 +1,94 @@
+<div class="vendor-list-container">
+  <div class="header">
+    <h1>Vendors</h1>
+    <div class="header-actions">
+      <button class="btn btn-primary" routerLink="/purchases/vendors/new">
+        <span>+</span> Add Vendor
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="filterVendors()"
+        placeholder="Search vendors by name, code, or email..."
+        class="search-input"
+      />
+      <button class="btn btn-secondary" (click)="filterVendors()">Search</button>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    Loading vendors...
+  </div>
+
+  <div *ngIf="!loading && filteredVendors.length === 0" class="no-data">
+    <p>No vendors found.</p>
+    <button class="btn btn-primary" routerLink="/purchases/vendors/new">Add Your First Vendor</button>
+  </div>
+
+  <div *ngIf="!loading && filteredVendors.length > 0" class="vendors-grid">
+    <div class="vendor-card" *ngFor="let vendor of filteredVendors">
+      <div class="vendor-header">
+        <h3>{{ vendor.companyName }}</h3>
+        <span class="vendor-code">{{ vendor.code }}</span>
+      </div>
+
+      <div class="vendor-info">
+        <div class="info-row">
+          <span class="label">Contact Person:</span>
+          <span class="value">{{ vendor.contactPerson }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Email:</span>
+          <span class="value">{{ vendor.email }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Phone:</span>
+          <span class="value">{{ vendor.phone }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Credit Limit:</span>
+          <span class="value">{{ vendor.creditLimit | currency:'INR' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Outstanding:</span>
+          <span class="value" [ngClass]="{'text-warning': vendor.outstandingBalance > vendor.creditLimit * 0.8}">
+            {{ vendor.outstandingBalance | currency:'INR' }}
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="label">Payment Terms:</span>
+          <span class="value">{{ vendor.paymentTermDays }} days</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Status:</span>
+          <span class="value">
+            <span class="badge" [ngClass]="vendor.isActive ? 'badge-success' : 'badge-secondary'">
+              {{ vendor.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <div class="vendor-actions">
+        <button class="btn btn-sm btn-secondary" [routerLink]="['/purchases/vendors', vendor.id]">
+          View
+        </button>
+        <button class="btn btn-sm btn-secondary" [routerLink]="['/purchases/vendors', vendor.id, 'edit']">
+          Edit
+        </button>
+        <button class="btn btn-sm btn-danger" (click)="deleteVendor(vendor.id, vendor.companyName)">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,371 @@
+<div class="dashboard-wrapper">
+  <div class="container-fluid py-3">
+    <div class="row mb-2">
+      <div class="col">
+        <div class="dashboard-header">
+          <h2>Dashboard Overview</h2>
+          <p class="text-muted" *ngIf="currentUser">Welcome back, {{ currentUser.firstName }}! Here's what's happening with your business today.</p>
+        </div>
+      </div>
+    </div>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+    <button class="btn btn-sm btn-outline-danger ms-3" (click)="loadDashboardSummary()">Retry</button>
+  </div>
+
+  <div *ngIf="dashboardSummary && !loading">
+    <!-- Business Metrics - All in One Section -->
+    <div class="row mb-2">
+      <div class="col-12 mb-2">
+        <h5 class="text-secondary">Business Metrics</h5>
+      </div>
+      <!-- Sales Metrics -->
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card bg-primary text-white">
+          <div class="card-body">
+            <h6 class="card-title">Today's Revenue</h6>
+            <h3 class="mb-0">{{ formatCurrency(dashboardSummary.sales.todayRevenue) }}</h3>
+            <small>{{ dashboardSummary.sales.todayOrders }} orders</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card bg-success text-white">
+          <div class="card-body">
+            <h6 class="card-title">Month Revenue</h6>
+            <h3 class="mb-0">{{ formatCurrency(dashboardSummary.sales.monthRevenue) }}</h3>
+            <small>{{ dashboardSummary.sales.monthOrders }} orders</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card bg-warning text-dark">
+          <div class="card-body">
+            <h6 class="card-title">Pending Invoices</h6>
+            <h3 class="mb-0">{{ dashboardSummary.sales.pendingInvoices }}</h3>
+            <small>{{ formatCurrency(dashboardSummary.sales.outstandingAmount) }} outstanding</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card bg-info text-white">
+          <div class="card-body">
+            <h6 class="card-title">Year Revenue</h6>
+            <h3 class="mb-0">{{ formatCurrency(dashboardSummary.sales.yearRevenue) }}</h3>
+            <small>Total sales this year</small>
+          </div>
+        </div>
+      </div>
+      <!-- Purchase Metrics -->
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card border-primary">
+          <div class="card-body">
+            <h6 class="card-title text-muted">Today's Purchases</h6>
+            <h3 class="mb-0 text-primary">{{ formatCurrency(dashboardSummary.purchases.todayPurchases) }}</h3>
+            <small class="text-muted">{{ dashboardSummary.purchases.todayPOs }} POs</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card border-success">
+          <div class="card-body">
+            <h6 class="card-title text-muted">Month Purchases</h6>
+            <h3 class="mb-0 text-success">{{ formatCurrency(dashboardSummary.purchases.monthPurchases) }}</h3>
+            <small class="text-muted">{{ dashboardSummary.purchases.monthPOs }} POs</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card border-warning">
+          <div class="card-body">
+            <h6 class="card-title text-muted">Pending POs</h6>
+            <h3 class="mb-0 text-warning">{{ dashboardSummary.purchases.pendingPOs }}</h3>
+            <small class="text-muted">{{ dashboardSummary.purchases.pendingGRNs }} pending GRNs</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card border-info">
+          <div class="card-body">
+            <h6 class="card-title text-muted">Year Purchases</h6>
+            <h3 class="mb-0 text-info">{{ formatCurrency(dashboardSummary.purchases.yearPurchases) }}</h3>
+            <small class="text-muted">Total purchases this year</small>
+          </div>
+        </div>
+      </div>
+      <!-- Inventory Metrics -->
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card border-secondary">
+          <div class="card-body">
+            <h6 class="card-title text-muted">Total Products</h6>
+            <h3 class="mb-0">{{ formatNumber(dashboardSummary.inventory.totalProducts) }}</h3>
+            <small class="text-muted">Active items</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card border-danger">
+          <div class="card-body">
+            <h6 class="card-title text-muted">Low Stock</h6>
+            <h3 class="mb-0 text-danger">{{ formatNumber(dashboardSummary.inventory.lowStockProducts) }}</h3>
+            <small class="text-muted">Items need reorder</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card border-dark">
+          <div class="card-body">
+            <h6 class="card-title text-muted">Out of Stock</h6>
+            <h3 class="mb-0 text-dark">{{ formatNumber(dashboardSummary.inventory.outOfStockProducts) }}</h3>
+            <small class="text-muted">Items unavailable</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card border-primary">
+          <div class="card-body">
+            <h6 class="card-title text-muted">Total Stock Value</h6>
+            <h3 class="mb-0 text-primary">{{ formatCurrency(dashboardSummary.inventory.totalStockValue) }}</h3>
+            <small class="text-muted">Current inventory value</small>
+          </div>
+        </div>
+      </div>
+      <!-- Financial Metrics -->
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card border-success">
+          <div class="card-body">
+            <h6 class="card-title text-muted">Net Profit (YTD)</h6>
+            <h3 class="mb-0" [class.text-success]="dashboardSummary.financial.netProfit >= 0" [class.text-danger]="dashboardSummary.financial.netProfit < 0">
+              {{ formatCurrency(dashboardSummary.financial.netProfit) }}
+            </h3>
+            <small class="text-muted">{{ formatPercentage(dashboardSummary.financial.profitMargin) }} margin</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card border-primary">
+          <div class="card-body">
+            <h6 class="card-title text-muted">Total Revenue (YTD)</h6>
+            <h3 class="mb-0 text-success">{{ formatCurrency(dashboardSummary.financial.totalRevenue) }}</h3>
+            <small class="text-muted">Year to date</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card border-danger">
+          <div class="card-body">
+            <h6 class="card-title text-muted">Total Expenses (YTD)</h6>
+            <h3 class="mb-0 text-danger">{{ formatCurrency(dashboardSummary.financial.totalExpenses) }}</h3>
+            <small class="text-muted">Year to date</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 mb-2">
+        <div class="card summary-card border-info">
+          <div class="card-body">
+            <h6 class="card-title text-muted">A/R vs A/P</h6>
+            <h3 class="mb-0 text-info">{{ formatCurrency(dashboardSummary.financial.accountsReceivable) }}</h3>
+            <small class="text-muted">A/P: {{ formatCurrency(dashboardSummary.financial.accountsPayable) }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-2">
+      <div class="col-12 mb-2">
+        <h5 class="text-secondary">Business Analytics</h5>
+      </div>
+
+      <!-- Monthly Trend Bar Chart -->
+      <div class="col-lg-7 mb-2">
+        <div class="card h-100">
+          <div class="card-header">
+            <h5 class="mb-0">Monthly Sales vs Purchases Trend</h5>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas baseChart
+                [type]="barChartType"
+                [data]="barChartData"
+                [options]="barChartOptions">
+              </canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pie and Doughnut Charts Side by Side -->
+      <div class="col-lg-5 mb-2">
+        <div class="row h-100">
+          <div class="col-12 mb-2">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">Top 5 Customers by Sales</h5>
+              </div>
+              <div class="card-body">
+                <div class="chart-container-small">
+                  <canvas baseChart
+                    [type]="doughnutChartType"
+                    [data]="doughnutChartData"
+                    [options]="doughnutChartOptions">
+                  </canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">Top 5 Products by Revenue</h5>
+              </div>
+              <div class="card-body">
+                <div class="chart-container-small">
+                  <canvas baseChart
+                    [type]="pieChartType"
+                    [data]="pieChartData"
+                    [options]="pieChartOptions">
+                  </canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Customers & Products Tables -->
+    <div class="row mb-2">
+      <div class="col-12 mb-2">
+        <h5 class="text-secondary">Top Performers</h5>
+      </div>
+
+      <!-- Top Customers Table -->
+      <div class="col-12 col-md-6 col-lg-6 mb-2">
+        <div class="card h-100">
+          <div class="card-header">
+            <h5 class="mb-0">Top 5 Customers</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Customer Name</th>
+                    <th class="text-end d-none d-sm-table-cell">Total Sales</th>
+                    <th class="text-center d-none d-md-table-cell">Orders</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let customer of dashboardSummary.topCustomers; let i = index">
+                    <td>{{ i + 1 }}</td>
+                    <td>
+                      {{ customer.customerName }}
+                      <br class="d-sm-none">
+                      <small class="d-sm-none text-success">{{ formatCurrency(customer.totalRevenue) }}</small>
+                    </td>
+                    <td class="text-end d-none d-sm-table-cell">{{ formatCurrency(customer.totalRevenue) }}</td>
+                    <td class="text-center d-none d-md-table-cell"><span class="badge bg-primary">{{ customer.orderCount }}</span></td>
+                  </tr>
+                  <tr *ngIf="dashboardSummary.topCustomers.length === 0">
+                    <td colspan="4" class="text-center text-muted">No data available</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Products Table -->
+      <div class="col-12 col-md-6 col-lg-6 mb-2">
+        <div class="card h-100">
+          <div class="card-header">
+            <h5 class="mb-0">Top 5 Products</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Product Name</th>
+                    <th class="text-end d-none d-sm-table-cell">Qty Sold</th>
+                    <th class="text-end d-none d-md-table-cell">Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let product of dashboardSummary.topProducts; let i = index">
+                    <td>{{ i + 1 }}</td>
+                    <td>
+                      {{ product.productName }}
+                      <br><small class="text-muted">{{ product.productCode }}</small>
+                      <br class="d-sm-none">
+                      <small class="d-sm-none text-success">{{ formatCurrency(product.revenue) }}</small>
+                    </td>
+                    <td class="text-end d-none d-sm-table-cell">{{ formatNumber(product.quantitySold) }}</td>
+                    <td class="text-end d-none d-md-table-cell">{{ formatCurrency(product.revenue) }}</td>
+                  </tr>
+                  <tr *ngIf="dashboardSummary.topProducts.length === 0">
+                    <td colspan="4" class="text-center text-muted">No data available</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">Recent Activities</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Reference</th>
+                    <th class="text-end">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let activity of dashboardSummary.recentActivities">
+                    <td>{{ activity.timestamp | date:'short' }}</td>
+                    <td><span class="badge bg-secondary">{{ activity.activityType }}</span></td>
+                    <td>{{ activity.description }}</td>
+                    <td><code>{{ activity.reference }}</code></td>
+                    <td class="text-end">
+                      <span *ngIf="activity.amount">{{ formatCurrency(activity.amount) }}</span>
+                      <span *ngIf="!activity.amount" class="text-muted">-</span>
+                    </td>
+                  </tr>
+                  <tr *ngIf="dashboardSummary.recentActivities.length === 0">
+                    <td colspan="5" class="text-center text-muted">No recent activities</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>

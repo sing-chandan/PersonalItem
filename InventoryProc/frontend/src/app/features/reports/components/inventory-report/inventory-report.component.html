@@ -1,0 +1,196 @@
+<div class="inventory-report-container">
+  <div class="header">
+    <div>
+      <h1>Inventory Report</h1>
+      <p class="subtitle">Monitor stock levels and inventory value</p>
+    </div>
+  </div>
+
+  <!-- Filter Form -->
+  <div class="filter-section">
+    <h2>Filters</h2>
+    <form [formGroup]="filterForm" (ngSubmit)="onFilter()">
+      <div class="filter-row-simple">
+        <div class="form-check-wrapper">
+          <input class="form-check-input" type="checkbox" id="lowStockOnly" formControlName="lowStockOnly">
+          <label class="form-check-label" for="lowStockOnly">
+            Show Low Stock Items Only
+          </label>
+        </div>
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary">
+            Apply Filters
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="onReset()">
+            Reset
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+  </div>
+
+  <div *ngIf="report && !loading">
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+      <div class="summary-card total">
+        <div class="card-icon">📦</div>
+        <div class="card-content">
+          <h6>Total Products</h6>
+          <h3>{{ formatNumber(report.totalProducts) }}</h3>
+          <p>Active items</p>
+        </div>
+      </div>
+      <div class="summary-card low-stock">
+        <div class="card-icon">⚠️</div>
+        <div class="card-content">
+          <h6>Low Stock</h6>
+          <h3>{{ formatNumber(report.lowStockProducts) }}</h3>
+          <p>Need reorder</p>
+        </div>
+      </div>
+      <div class="summary-card out-of-stock">
+        <div class="card-icon">❌</div>
+        <div class="card-content">
+          <h6>Out of Stock</h6>
+          <h3>{{ formatNumber(report.outOfStockProducts) }}</h3>
+          <p>Unavailable</p>
+        </div>
+      </div>
+      <div class="summary-card value">
+        <div class="card-icon">💰</div>
+        <div class="card-content">
+          <h6>Total Stock Value</h6>
+          <h3>{{ formatCurrency(report.totalStockValue) }}</h3>
+          <p>Current inventory</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock Levels -->
+    <div class="report-section" *ngIf="report.stockLevels.length > 0">
+      <div class="section-header">
+        <h2>Stock Levels</h2>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th class="text-end">Current Stock</th>
+              <th class="text-end">Min Stock</th>
+              <th class="text-end">Unit Price</th>
+              <th class="text-end">Stock Value</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of report.stockLevels.slice(0, 50)">
+              <td>
+                <strong>{{ item.productName }}</strong><br>
+                <small class="text-muted">{{ item.productCode }}</small>
+              </td>
+              <td>{{ item.categoryName }}</td>
+              <td class="text-end" [ngClass]="getStockStatusClass(item.currentStock, item.minimumStock)">
+                {{ formatNumber(item.currentStock) }}
+              </td>
+              <td class="text-end">{{ formatNumber(item.minimumStock) }}</td>
+              <td class="text-end">{{ formatCurrency(item.unitPrice) }}</td>
+              <td class="text-end">{{ formatCurrency(item.stockValue) }}</td>
+              <td>
+                <span *ngIf="item.currentStock === 0" class="badge bg-danger">Out of Stock</span>
+                <span *ngIf="item.currentStock > 0 && item.currentStock <= item.minimumStock" class="badge bg-warning">Low Stock</span>
+                <span *ngIf="item.currentStock > item.minimumStock" class="badge bg-success">In Stock</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p *ngIf="report.stockLevels.length > 50" class="text-muted text-center mt-3">
+          Showing 50 of {{ formatNumber(report.stockLevels.length) }} products
+        </p>
+      </div>
+    </div>
+
+    <!-- Low Stock Items & Recent Movements -->
+    <div class="two-column-grid">
+      <div class="report-section">
+        <div class="section-header">
+          <h2>Low Stock Alerts</h2>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th class="text-end">Current</th>
+                <th class="text-end">Minimum</th>
+                <th class="text-end">Shortage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of report.lowStockItems.slice(0, 10)">
+                <td>
+                  <strong>{{ item.productName }}</strong><br>
+                  <small class="text-muted">{{ item.productCode }}</small>
+                </td>
+                <td class="text-end text-danger fw-bold">{{ formatNumber(item.currentStock) }}</td>
+                <td class="text-end">{{ formatNumber(item.minimumStock) }}</td>
+                <td class="text-end text-warning fw-bold">{{ formatNumber(item.shortageQuantity) }}</td>
+              </tr>
+              <tr *ngIf="report.lowStockItems.length === 0">
+                <td colspan="4" class="text-center text-muted">No low stock items</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="report-section">
+        <div class="section-header">
+          <h2>Recent Stock Movements</h2>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Product</th>
+                <th>Type</th>
+                <th class="text-end">Quantity</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let movement of report.recentMovements.slice(0, 10)">
+                <td>{{ movement.date | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <strong>{{ movement.productName }}</strong><br>
+                  <small class="text-muted">{{ movement.productCode }}</small>
+                </td>
+                <td>
+                  <span *ngIf="movement.movementType === 'Sale'" class="badge bg-danger">{{ movement.movementType }}</span>
+                  <span *ngIf="movement.movementType === 'Purchase'" class="badge bg-success">{{ movement.movementType }}</span>
+                </td>
+                <td class="text-end" [class.text-danger]="movement.quantity < 0" [class.text-success]="movement.quantity > 0">
+                  {{ movement.quantity > 0 ? '+' : '' }}{{ formatNumber(movement.quantity) }}
+                </td>
+              </tr>
+              <tr *ngIf="report.recentMovements.length === 0">
+                <td colspan="4" class="text-center text-muted">No recent movements</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

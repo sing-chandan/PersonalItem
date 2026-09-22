@@ -1,0 +1,223 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>{{ isEditMode ? 'Edit Customer' : 'Add New Customer' }}</h1>
+  </div>
+
+  <div class="form-container" *ngIf="!loading">
+    <form (ngSubmit)="onSubmit()" #customerForm="ngForm">
+      <div class="form-section">
+        <h2>Basic Information</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="customerCode"
+              >Customer Code <span class="required">*</span></label
+            >
+            <input
+              type="text"
+              id="customerCode"
+              name="customerCode"
+              [(ngModel)]="customer.customerCode"
+              [disabled]="isEditMode"
+              required
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="companyName"
+              >Company Name <span class="required">*</span></label
+            >
+            <input
+              type="text"
+              id="companyName"
+              name="companyName"
+              [(ngModel)]="customer.companyName"
+              required
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="contactPerson"
+              >Contact Person <span class="required">*</span></label
+            >
+            <input
+              type="text"
+              id="contactPerson"
+              name="contactPerson"
+              [(ngModel)]="customer.contactPerson"
+              required
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              [(ngModel)]="customer.email"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              [(ngModel)]="customer.phone"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="mobile">Mobile</label>
+            <input
+              type="tel"
+              id="mobile"
+              name="mobile"
+              [(ngModel)]="customer.mobile"
+              class="form-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2>Address Details</h2>
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="address">Address</label>
+            <textarea
+              id="address"
+              name="address"
+              [(ngModel)]="customer.address"
+              rows="3"
+              class="form-input"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="city">City</label>
+            <input
+              type="text"
+              id="city"
+              name="city"
+              [(ngModel)]="customer.city"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="state">State</label>
+            <input
+              type="text"
+              id="state"
+              name="state"
+              [(ngModel)]="customer.state"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="country">Country</label>
+            <input
+              type="text"
+              id="country"
+              name="country"
+              [(ngModel)]="customer.country"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="pincode">Pincode</label>
+            <input
+              type="text"
+              id="pincode"
+              name="pincode"
+              [(ngModel)]="customer.pincode"
+              class="form-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2>Tax & Credit Information</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="gstNumber">GST Number</label>
+            <input
+              type="text"
+              id="gstNumber"
+              name="gstNumber"
+              [(ngModel)]="customer.gstNumber"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="panNumber">PAN Number</label>
+            <input
+              type="text"
+              id="panNumber"
+              name="panNumber"
+              [(ngModel)]="customer.panNumber"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="creditLimit">Credit Limit (₹)</label>
+            <input
+              type="number"
+              id="creditLimit"
+              name="creditLimit"
+              [(ngModel)]="customer.creditLimit"
+              min="0"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="creditDays">Credit Days</label>
+            <input
+              type="number"
+              id="creditDays"
+              name="creditDays"
+              [(ngModel)]="customer.creditDays"
+              min="0"
+              class="form-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cancel()"
+          [disabled]="saving"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="saving || !customerForm.valid"
+        >
+          {{ saving ? 'Saving...' : isEditMode ? 'Update Customer' : 'Create Customer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="loading-spinner" *ngIf="loading">
+    <p>Loading customer data...</p>
+  </div>
+</div>

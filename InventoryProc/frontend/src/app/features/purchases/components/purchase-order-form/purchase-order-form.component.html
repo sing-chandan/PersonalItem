@@ -1,0 +1,177 @@
+<div class="po-form-container">
+  <div class="header">
+    <h1>{{ isEditMode ? 'Edit Purchase Order' : 'New Purchase Order' }}</h1>
+    <button class="btn btn-secondary" (click)="cancel()">Back to List</button>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <form [formGroup]="orderForm" (ngSubmit)="onSubmit()" class="po-form">
+    <div class="form-section">
+      <h2>Order Details</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="orderDate">Order Date *</label>
+          <input
+            type="date"
+            id="orderDate"
+            formControlName="orderDate"
+            [class.error]="submitted && f['orderDate'].errors"
+          />
+          <span *ngIf="submitted && f['orderDate'].errors" class="error-text">
+            Order date is required
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="vendorId">Vendor *</label>
+          <select
+            id="vendorId"
+            formControlName="vendorId"
+            [class.error]="submitted && f['vendorId'].errors"
+          >
+            <option value="">Select vendor</option>
+            <option *ngFor="let vendor of vendors" [value]="vendor.id">
+              {{ vendor.code }} - {{ vendor.companyName }}
+            </option>
+          </select>
+          <span *ngIf="submitted && f['vendorId'].errors" class="error-text">
+            Vendor is required
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="expectedDeliveryDate">Expected Delivery Date</label>
+          <input
+            type="date"
+            id="expectedDeliveryDate"
+            formControlName="expectedDeliveryDate"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="notes">Notes</label>
+        <textarea
+          id="notes"
+          formControlName="notes"
+          rows="3"
+          placeholder="Enter any additional notes or instructions"
+        ></textarea>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-header">
+        <h2>Order Items</h2>
+        <button type="button" class="btn btn-success btn-sm" (click)="addItem()">
+          <span>+</span> Add Item
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th style="width: 35%;">Product *</th>
+              <th style="width: 12%;">Quantity *</th>
+              <th style="width: 15%;">Unit Price *</th>
+              <th style="width: 15%;">Tax Amount *</th>
+              <th style="width: 15%;">Total</th>
+              <th style="width: 8%;"></th>
+            </tr>
+          </thead>
+          <tbody formArrayName="items">
+            <tr *ngFor="let item of items.controls; let i = index" [formGroupName]="i">
+              <td>
+                <select
+                  class="form-control-sm"
+                  formControlName="productId"
+                  (change)="onProductChange(i)"
+                  [class.error]="submitted && item.get('productId')?.errors"
+                >
+                  <option value="">Select Product</option>
+                  <option *ngFor="let product of products" [value]="product.id">
+                    {{ product.code }} - {{ product.name }}
+                  </option>
+                </select>
+              </td>
+              <td>
+                <input
+                  type="number"
+                  class="form-control-sm"
+                  formControlName="quantity"
+                  min="1"
+                  [class.error]="submitted && item.get('quantity')?.errors"
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  class="form-control-sm"
+                  formControlName="unitPrice"
+                  step="0.01"
+                  min="0"
+                  [class.error]="submitted && item.get('unitPrice')?.errors"
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  class="form-control-sm"
+                  formControlName="taxAmount"
+                  step="0.01"
+                  min="0"
+                  [class.error]="submitted && item.get('taxAmount')?.errors"
+                />
+              </td>
+              <td>
+                <span class="total-amount">{{ getItemTotal(i) | currency:'INR' }}</span>
+              </td>
+              <td class="text-center">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-danger"
+                  (click)="removeItem(i)"
+                  [disabled]="items.length === 1"
+                >
+                  ×
+                </button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4" class="text-end">Subtotal:</td>
+              <td colspan="2" class="total-amount">{{ getSubTotal() | currency:'INR' }}</td>
+            </tr>
+            <tr>
+              <td colspan="4" class="text-end">Total Tax:</td>
+              <td colspan="2" class="total-amount">{{ getTotalTax() | currency:'INR' }}</td>
+            </tr>
+            <tr class="grand-total-row">
+              <td colspan="4" class="text-end">Grand Total:</td>
+              <td colspan="2" class="grand-total">{{ getGrandTotal() | currency:'INR' }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div *ngIf="submitted && items.length === 0" class="error-message">
+        Please add at least one item to the purchase order
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="loading">
+        Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="loading || orderForm.invalid">
+        {{ loading ? 'Saving...' : (isEditMode ? 'Update Purchase Order' : 'Create Purchase Order') }}
+      </button>
+    </div>
+  </form>
+</div>

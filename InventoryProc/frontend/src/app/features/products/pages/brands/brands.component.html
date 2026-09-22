@@ -1,0 +1,103 @@
+<div class="brands-container">
+  <div class="header">
+    <h1>Product Brands</h1>
+    <div class="header-actions">
+      <button class="btn btn-secondary" routerLink="/products/list">Back to Products</button>
+      <button class="btn btn-primary" (click)="showAddForm()" *ngIf="!showForm">
+        <span>+</span> Add Brand
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <div *ngIf="showForm" class="form-card">
+    <h2>{{ isEditMode ? 'Edit Brand' : 'New Brand' }}</h2>
+    <form [formGroup]="brandForm" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Brand Name *</label>
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            placeholder="Enter brand name"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="code">Brand Code *</label>
+          <input
+            type="text"
+            id="code"
+            formControlName="code"
+            placeholder="Enter brand code"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea
+          id="description"
+          formControlName="description"
+          rows="2"
+          placeholder="Enter description (optional)"
+        ></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancelEdit()" [disabled]="loading">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="loading || brandForm.invalid">
+          {{ loading ? 'Saving...' : (isEditMode ? 'Update' : 'Create') }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div *ngIf="loading && !showForm" class="loading">
+    Loading brands...
+  </div>
+
+  <div *ngIf="!loading && brands.length === 0 && !showForm" class="no-data">
+    <p>No brands found.</p>
+    <button class="btn btn-primary" (click)="showAddForm()">Add Your First Brand</button>
+  </div>
+
+  <div *ngIf="!loading && brands.length > 0" class="brands-grid">
+    <div class="brand-card" *ngFor="let brand of brands">
+      <div class="brand-header">
+        <h3>{{ brand.name }}</h3>
+        <span class="brand-code">{{ brand.code }}</span>
+      </div>
+
+      <div class="brand-info" *ngIf="brand.description">
+        <p>{{ brand.description }}</p>
+      </div>
+
+      <div class="brand-stats">
+        <div class="stat">
+          <span class="label">Products:</span>
+          <span class="value">{{ brand.productCount }}</span>
+        </div>
+        <div class="stat">
+          <span class="label">Created:</span>
+          <span class="value">{{ brand.createdAt | date:'mediumDate' }}</span>
+        </div>
+      </div>
+
+      <div class="brand-actions">
+        <button class="btn btn-sm btn-secondary" (click)="editBrand(brand)">
+          Edit
+        </button>
+        <button class="btn btn-sm btn-danger" (click)="deleteBrand(brand.id)">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,95 @@
+<div class="user-list-container">
+  <div class="header">
+    <h1>User Management</h1>
+    <div class="header-actions">
+      <button class="btn btn-primary" routerLink="/users/create">
+        <span>+</span> Add User
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="filterUsers()"
+        placeholder="Search by name, email, or role..."
+        class="search-input"
+      />
+      <button class="btn btn-secondary" (click)="filterUsers()">Search</button>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+    <button class="btn btn-primary" (click)="loadUsers()">Retry</button>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    Loading users...
+  </div>
+
+  <div *ngIf="!loading && users.length === 0" class="no-data">
+    <p>No users found.</p>
+    <button class="btn btn-primary" routerLink="/users/create">Add Your First User</button>
+  </div>
+
+  <div *ngIf="!loading && users.length > 0" class="users-grid">
+    <div class="user-card" *ngFor="let user of users">
+      <div class="user-header">
+        <h3>{{ user.fullName }}</h3>
+        <span class="badge" [ngClass]="user.isActive ? 'badge-success' : 'badge-danger'">
+          {{ user.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+
+      <div class="user-info">
+        <div class="info-row">
+          <span class="label">Email:</span>
+          <span class="value">{{ user.email }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Mobile:</span>
+          <span class="value">{{ user.mobile || '-' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Role:</span>
+          <span class="value">
+            <span class="badge badge-secondary">{{ getRoleName(user.role) }}</span>
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="label">Joined:</span>
+          <span class="value">{{ user.createdAt | date:'dd/MM/yyyy' }}</span>
+        </div>
+      </div>
+
+      <div class="user-actions">
+        <button class="btn btn-sm btn-secondary" [routerLink]="['/users/edit', user.id]">
+          Edit
+        </button>
+        <button class="btn btn-sm btn-secondary" [routerLink]="['/users', user.id, 'activity']">
+          Activity
+        </button>
+        <button
+          *ngIf="!user.isActive"
+          class="btn btn-sm btn-success"
+          (click)="onActivate(user.id)">
+          Activate
+        </button>
+        <button
+          *ngIf="user.isActive"
+          class="btn btn-sm btn-warning"
+          (click)="onDeactivate(user.id)">
+          Deactivate
+        </button>
+        <button
+          class="btn btn-sm btn-danger"
+          (click)="onDelete(user.id, user.fullName)">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

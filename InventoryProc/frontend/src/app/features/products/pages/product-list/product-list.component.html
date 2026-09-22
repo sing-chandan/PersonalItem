@@ -1,0 +1,117 @@
+<div class="product-list-container">
+  <div class="header">
+    <h1>Products</h1>
+    <div class="header-actions">
+      <input
+        type="file"
+        #fileInput
+        accept=".xlsx"
+        style="display: none"
+        (change)="onFileSelected($event)"
+      />
+      <button class="btn btn-secondary" (click)="downloadTemplate()">
+        📥 Download Template
+      </button>
+      <button class="btn btn-secondary" (click)="fileInput.click()" [disabled]="uploading">
+        {{ uploading ? 'Uploading...' : '📤 Import Excel' }}
+      </button>
+      <button class="btn btn-primary" routerLink="/products/create">
+        <span>+</span> Add Product
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="onSearch()"
+        placeholder="Search by name, code, or barcode..."
+        class="search-input"
+      />
+      <button class="btn btn-secondary" (click)="onSearch()">Search</button>
+    </div>
+
+    <div class="filter-options">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          [(ngModel)]="showLowStockOnly"
+          (change)="toggleLowStockFilter()"
+        />
+        <span>Show Low Stock Only</span>
+      </label>
+      <button class="btn btn-link" routerLink="/products/categories">Manage Categories</button>
+      <button class="btn btn-link" routerLink="/products/brands">Manage Brands</button>
+    </div>
+  </div>
+
+  <!-- Debug Info -->
+  <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #ccc;">
+    <strong>Debug Info:</strong><br>
+    Loading: {{ loading }}<br>
+    Error: {{ error }}<br>
+    Products count: {{ products.length }}<br>
+    Filtered products count: {{ filteredProducts.length }}<br>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    Loading products...
+  </div>
+
+  <div *ngIf="!loading && filteredProducts.length === 0" class="no-data">
+    <p>No products found.</p>
+    <button class="btn btn-primary" routerLink="/products/create">Add Your First Product</button>
+  </div>
+
+  <div *ngIf="!loading && filteredProducts.length > 0" class="products-grid">
+    <div class="product-card" *ngFor="let product of filteredProducts">
+      <div class="product-header">
+        <h3>{{ product.name }}</h3>
+        <span class="product-code">{{ product.code }}</span>
+      </div>
+
+      <div class="product-info">
+        <div class="info-row">
+          <span class="label">Category:</span>
+          <span class="value">{{ product.categoryName }}</span>
+        </div>
+        <div class="info-row" *ngIf="product.brandName">
+          <span class="label">Brand:</span>
+          <span class="value">{{ product.brandName }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Sale Price:</span>
+          <span class="value price">₹{{ product.salePrice | number:'1.2-2' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Stock:</span>
+          <span class="value stock" [ngClass]="getStockStatusClass(product)">
+            {{ product.currentStock }} {{ product.unit }}
+          </span>
+        </div>
+      </div>
+
+      <div class="product-actions">
+        <button class="btn btn-sm btn-secondary" [routerLink]="['/products/edit', product.id]">
+          Edit
+        </button>
+        <button class="btn btn-sm btn-danger" (click)="deleteProduct(product.id)">
+          Delete
+        </button>
+      </div>
+
+      <div *ngIf="product.isLowStock" class="low-stock-badge">
+        Low Stock
+      </div>
+      <div *ngIf="product.isOutOfStock" class="out-of-stock-badge">
+        Out of Stock
+      </div>
+    </div>
+  </div>
+</div>

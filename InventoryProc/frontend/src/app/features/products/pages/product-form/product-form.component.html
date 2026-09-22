@@ -1,0 +1,240 @@
+<div class="product-form-container">
+  <div class="header">
+    <h1>{{ isEditMode ? 'Edit Product' : 'Add New Product' }}</h1>
+    <button class="btn btn-secondary" (click)="cancel()">Back to List</button>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="product-form">
+    <div class="form-section">
+      <h2>Basic Information</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Product Name *</label>
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            [class.error]="isFieldInvalid('name')"
+            placeholder="Enter product name"
+          />
+          <span *ngIf="isFieldInvalid('name')" class="error-text">
+            {{ getFieldError('name') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="code">Product Code *</label>
+          <input
+            type="text"
+            id="code"
+            formControlName="code"
+            [class.error]="isFieldInvalid('code')"
+            placeholder="Enter product code"
+            [attr.disabled]="isEditMode ? '' : null"
+          />
+          <span *ngIf="isFieldInvalid('code')" class="error-text">
+            {{ getFieldError('code') }}
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea
+          id="description"
+          formControlName="description"
+          rows="3"
+          placeholder="Enter product description"
+        ></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="barcode">Barcode</label>
+          <input
+            type="text"
+            id="barcode"
+            formControlName="barcode"
+            placeholder="Enter barcode"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="hsnCode">HSN Code</label>
+          <input
+            type="text"
+            id="hsnCode"
+            formControlName="hsnCode"
+            placeholder="Enter HSN code"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Classification</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="categoryId">Category *</label>
+          <select
+            id="categoryId"
+            formControlName="categoryId"
+            [class.error]="isFieldInvalid('categoryId')"
+          >
+            <option value="">Select category</option>
+            <option *ngFor="let category of categories" [value]="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+          <span *ngIf="isFieldInvalid('categoryId')" class="error-text">
+            Category is required
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="brandId">Brand</label>
+          <select id="brandId" formControlName="brandId">
+            <option value="">Select brand (optional)</option>
+            <option *ngFor="let brand of brands" [value]="brand.id">
+              {{ brand.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="unit">Unit *</label>
+        <select id="unit" formControlName="unit" [class.error]="isFieldInvalid('unit')">
+          <option value="PCS">Pieces (PCS)</option>
+          <option value="KG">Kilogram (KG)</option>
+          <option value="LITER">Liter</option>
+          <option value="METER">Meter</option>
+          <option value="BOX">Box</option>
+          <option value="DOZEN">Dozen</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Pricing</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="purchasePrice">Purchase Price *</label>
+          <input
+            type="number"
+            id="purchasePrice"
+            formControlName="purchasePrice"
+            [class.error]="isFieldInvalid('purchasePrice')"
+            placeholder="0.00"
+            step="0.01"
+          />
+          <span *ngIf="isFieldInvalid('purchasePrice')" class="error-text">
+            {{ getFieldError('purchasePrice') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="salePrice">Sale Price *</label>
+          <input
+            type="number"
+            id="salePrice"
+            formControlName="salePrice"
+            [class.error]="isFieldInvalid('salePrice')"
+            placeholder="0.00"
+            step="0.01"
+          />
+          <span *ngIf="isFieldInvalid('salePrice')" class="error-text">
+            {{ getFieldError('salePrice') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="mrp">MRP *</label>
+          <input
+            type="number"
+            id="mrp"
+            formControlName="mrp"
+            [class.error]="isFieldInvalid('mrp')"
+            placeholder="0.00"
+            step="0.01"
+          />
+          <span *ngIf="isFieldInvalid('mrp')" class="error-text">
+            {{ getFieldError('mrp') }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Stock Management</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="minStockLevel">Minimum Stock Level</label>
+          <input
+            type="number"
+            id="minStockLevel"
+            formControlName="minStockLevel"
+            placeholder="0"
+            step="1"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="maxStockLevel">Maximum Stock Level</label>
+          <input
+            type="number"
+            id="maxStockLevel"
+            formControlName="maxStockLevel"
+            placeholder="0"
+            step="1"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Tax Information</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="taxType">Tax Type</label>
+          <select id="taxType" formControlName="taxType">
+            <option value="">None</option>
+            <option value="GST">GST</option>
+            <option value="VAT">VAT</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="taxRate">Tax Rate (%)</label>
+          <input
+            type="number"
+            id="taxRate"
+            formControlName="taxRate"
+            placeholder="0"
+            step="0.01"
+            min="0"
+            max="100"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="loading">
+        Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="loading || productForm.invalid">
+        {{ loading ? 'Saving...' : (isEditMode ? 'Update Product' : 'Create Product') }}
+      </button>
+    </div>
+  </form>
+</div>

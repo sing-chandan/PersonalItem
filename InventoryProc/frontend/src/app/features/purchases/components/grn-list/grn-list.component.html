@@ -1,0 +1,114 @@
+<div class="grn-list-container">
+  <div class="header">
+    <h1>Goods Receipt Notes</h1>
+    <div class="header-actions">
+      <button class="btn btn-secondary" routerLink="/purchases/purchase-orders">
+        View Purchase Orders
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="applyFilters()"
+        placeholder="Search by GRN number, PO number, or received by..."
+        class="search-input"
+      />
+      <select class="form-control" (change)="onStatusFilterChange($event)">
+        <option value="">All Statuses</option>
+        <option [value]="GRNStatus.Draft">Draft</option>
+        <option [value]="GRNStatus.Completed">Completed</option>
+        <option [value]="GRNStatus.Cancelled">Cancelled</option>
+      </select>
+      <button class="btn btn-secondary" (click)="applyFilters()">Filter</button>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    Loading goods receipt notes...
+  </div>
+
+  <div *ngIf="!loading && filteredGRNs.length === 0" class="no-data">
+    <p>No goods receipt notes found.</p>
+    <button class="btn btn-primary" routerLink="/purchases/purchase-orders">View Purchase Orders</button>
+  </div>
+
+  <div *ngIf="!loading && filteredGRNs.length > 0" class="grn-grid">
+    <div class="grn-card" *ngFor="let grn of filteredGRNs">
+      <div class="grn-header">
+        <h3>{{ grn.grnNumber }}</h3>
+        <span class="badge" [ngClass]="getStatusClass(grn.status)">
+          {{ getStatusLabel(grn.status) }}
+        </span>
+      </div>
+
+      <div class="grn-info">
+        <div class="info-row">
+          <span class="label">Purchase Order:</span>
+          <span class="value">
+            <a [routerLink]="['/purchases/purchase-orders', grn.purchaseOrderId]">
+              {{ grn.purchaseOrderNumber }}
+            </a>
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="label">GRN Date:</span>
+          <span class="value">{{ grn.grnDate | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Received By:</span>
+          <span class="value">{{ grn.receivedBy }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Items:</span>
+          <span class="value">{{ grn.items.length }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Accepted Qty:</span>
+          <span class="value success">{{ getTotalAccepted(grn) }}</span>
+        </div>
+        <div class="info-row" *ngIf="getTotalRejected(grn) > 0">
+          <span class="label">Rejected Qty:</span>
+          <span class="value rejected">{{ getTotalRejected(grn) }}</span>
+        </div>
+        <div class="info-row" *ngIf="grn.completedDate">
+          <span class="label">Completed Date:</span>
+          <span class="value">{{ grn.completedDate | date:'dd/MM/yyyy' }}</span>
+        </div>
+      </div>
+
+      <div class="grn-actions">
+        <button class="btn btn-sm btn-secondary" [routerLink]="['/purchases/goods-receipt-notes', grn.id]">
+          View
+        </button>
+        <button
+          *ngIf="grn.status === GRNStatus.Draft"
+          class="btn btn-sm btn-success"
+          (click)="completeGRN(grn.id, grn.grnNumber)"
+          title="Complete">
+          Complete
+        </button>
+        <button
+          *ngIf="grn.status === GRNStatus.Draft"
+          class="btn btn-sm btn-warning"
+          (click)="cancelGRN(grn.id, grn.grnNumber)"
+          title="Cancel">
+          Cancel
+        </button>
+        <button
+          *ngIf="grn.status === GRNStatus.Draft"
+          class="btn btn-sm btn-danger"
+          (click)="deleteGRN(grn.id, grn.grnNumber)">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

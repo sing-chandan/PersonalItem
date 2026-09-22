@@ -1,0 +1,311 @@
+<div class="vendor-form-container">
+  <div class="header">
+    <h1>{{ isEditMode ? 'Edit Vendor' : 'Add New Vendor' }}</h1>
+    <button class="btn btn-secondary" (click)="cancel()">Back to List</button>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <form [formGroup]="vendorForm" (ngSubmit)="onSubmit()" class="vendor-form">
+    <div class="form-section">
+      <h2>Basic Information</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="code">Vendor Code *</label>
+          <input
+            type="text"
+            id="code"
+            formControlName="code"
+            [class.error]="submitted && f['code'].errors"
+            placeholder="Enter vendor code"
+          />
+          <span *ngIf="submitted && f['code'].errors" class="error-text">
+            Vendor code is required
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="companyName">Company Name *</label>
+          <input
+            type="text"
+            id="companyName"
+            formControlName="companyName"
+            [class.error]="submitted && f['companyName'].errors"
+            placeholder="Enter company name"
+          />
+          <span *ngIf="submitted && f['companyName'].errors" class="error-text">
+            Company name is required
+          </span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="contactPerson">Contact Person *</label>
+          <input
+            type="text"
+            id="contactPerson"
+            formControlName="contactPerson"
+            [class.error]="submitted && f['contactPerson'].errors"
+            placeholder="Enter contact person"
+          />
+          <span *ngIf="submitted && f['contactPerson'].errors" class="error-text">
+            Contact person is required
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            [class.error]="submitted && f['email'].errors"
+            placeholder="Enter email address"
+          />
+          <span *ngIf="submitted && f['email'].errors" class="error-text">
+            <span *ngIf="f['email'].errors['required']">Email is required</span>
+            <span *ngIf="f['email'].errors['email']">Invalid email format</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="phone">Phone *</label>
+          <input
+            type="text"
+            id="phone"
+            formControlName="phone"
+            [class.error]="submitted && f['phone'].errors"
+            placeholder="Enter phone number"
+          />
+          <span *ngIf="submitted && f['phone'].errors" class="error-text">
+            Phone is required
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="mobile">Mobile *</label>
+          <input
+            type="text"
+            id="mobile"
+            formControlName="mobile"
+            [class.error]="submitted && f['mobile'].errors"
+            placeholder="Enter mobile number"
+          />
+          <span *ngIf="submitted && f['mobile'].errors" class="error-text">
+            Mobile is required
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Address Details</h2>
+
+      <div class="form-group">
+        <label for="addressLine1">Address Line 1 *</label>
+        <input
+          type="text"
+          id="addressLine1"
+          formControlName="addressLine1"
+          [class.error]="submitted && f['addressLine1'].errors"
+          placeholder="Enter street address"
+        />
+        <span *ngIf="submitted && f['addressLine1'].errors" class="error-text">
+          Address is required
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="addressLine2">Address Line 2</label>
+        <input
+          type="text"
+          id="addressLine2"
+          formControlName="addressLine2"
+          placeholder="Enter additional address details (optional)"
+        />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="city">City *</label>
+          <input
+            type="text"
+            id="city"
+            formControlName="city"
+            [class.error]="submitted && f['city'].errors"
+            placeholder="Enter city"
+          />
+          <span *ngIf="submitted && f['city'].errors" class="error-text">
+            City is required
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="state">State *</label>
+          <input
+            type="text"
+            id="state"
+            formControlName="state"
+            [class.error]="submitted && f['state'].errors"
+            placeholder="Enter state"
+          />
+          <span *ngIf="submitted && f['state'].errors" class="error-text">
+            State is required
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="postalCode">Postal Code *</label>
+          <input
+            type="text"
+            id="postalCode"
+            formControlName="postalCode"
+            [class.error]="submitted && f['postalCode'].errors"
+            placeholder="Enter postal code"
+          />
+          <span *ngIf="submitted && f['postalCode'].errors" class="error-text">
+            Postal code is required
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="country">Country *</label>
+        <input
+          type="text"
+          id="country"
+          formControlName="country"
+          [class.error]="submitted && f['country'].errors"
+          placeholder="Enter country"
+        />
+        <span *ngIf="submitted && f['country'].errors" class="error-text">
+          Country is required
+        </span>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Tax Information</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="gstNumber">GST Number</label>
+          <input
+            type="text"
+            id="gstNumber"
+            formControlName="gstNumber"
+            placeholder="Enter GST number (optional)"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="panNumber">PAN Number</label>
+          <input
+            type="text"
+            id="panNumber"
+            formControlName="panNumber"
+            placeholder="Enter PAN number (optional)"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Payment Terms</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="creditLimit">Credit Limit *</label>
+          <input
+            type="number"
+            id="creditLimit"
+            formControlName="creditLimit"
+            [class.error]="submitted && f['creditLimit'].errors"
+            placeholder="0.00"
+            step="0.01"
+          />
+          <span *ngIf="submitted && f['creditLimit'].errors" class="error-text">
+            Credit limit is required and must be positive
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="paymentTermDays">Payment Terms (Days) *</label>
+          <input
+            type="number"
+            id="paymentTermDays"
+            formControlName="paymentTermDays"
+            [class.error]="submitted && f['paymentTermDays'].errors"
+            placeholder="0"
+            step="1"
+          />
+          <span *ngIf="submitted && f['paymentTermDays'].errors" class="error-text">
+            Payment terms are required and must be positive
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Bank Details</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="bankName">Bank Name</label>
+          <input
+            type="text"
+            id="bankName"
+            formControlName="bankName"
+            placeholder="Enter bank name (optional)"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="bankAccountNumber">Account Number</label>
+          <input
+            type="text"
+            id="bankAccountNumber"
+            formControlName="bankAccountNumber"
+            placeholder="Enter account number (optional)"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="bankIFSCCode">IFSC Code</label>
+          <input
+            type="text"
+            id="bankIFSCCode"
+            formControlName="bankIFSCCode"
+            placeholder="Enter IFSC code (optional)"
+          />
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="isEditMode">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            id="isActive"
+            formControlName="isActive"
+          />
+          <span>Active Vendor</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="loading">
+        Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="loading || vendorForm.invalid">
+        {{ loading ? 'Saving...' : (isEditMode ? 'Update Vendor' : 'Create Vendor') }}
+      </button>
+    </div>
+  </form>
+</div>

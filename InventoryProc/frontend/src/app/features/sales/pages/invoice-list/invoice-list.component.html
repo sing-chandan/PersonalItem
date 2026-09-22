@@ -1,0 +1,110 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>Invoices</h1>
+    <div class="header-actions">
+      <select [(ngModel)]="filterStatus" (change)="applyFilter()" class="filter-select">
+        <option value="all">All Invoices</option>
+        <option value="paid">Paid</option>
+        <option value="unpaid">Unpaid</option>
+        <option value="partially-paid">Partially Paid</option>
+        <option value="overdue">Overdue</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="stats-cards">
+    <div class="stat-card stat-unpaid" (click)="filterStatus = 'unpaid'; applyFilter()">
+      <div class="stat-value">{{ getCountByStatus(InvoicePaymentStatus.Unpaid) }}</div>
+      <div class="stat-label">Unpaid</div>
+    </div>
+    <div class="stat-card stat-partially" (click)="filterStatus = 'partially-paid'; applyFilter()">
+      <div class="stat-value">{{ getCountByStatus(InvoicePaymentStatus.PartiallyPaid) }}</div>
+      <div class="stat-label">Partially Paid</div>
+    </div>
+    <div class="stat-card stat-paid" (click)="filterStatus = 'paid'; applyFilter()">
+      <div class="stat-value">{{ getCountByStatus(InvoicePaymentStatus.Paid) }}</div>
+      <div class="stat-label">Paid</div>
+    </div>
+    <div class="stat-card stat-overdue" (click)="filterStatus = 'overdue'; applyFilter()">
+      <div class="stat-value">{{ getCountByStatus(InvoicePaymentStatus.Overdue) }}</div>
+      <div class="stat-label">Overdue</div>
+    </div>
+  </div>
+
+  <div class="table-container" *ngIf="!loading">
+    <table class="data-table" *ngIf="filteredInvoices.length > 0">
+      <thead>
+        <tr>
+          <th>Invoice Number</th>
+          <th>Customer</th>
+          <th>Invoice Date</th>
+          <th>Due Date</th>
+          <th>Total Amount</th>
+          <th>Paid Amount</th>
+          <th>Balance</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let invoice of filteredInvoices" [class.row-overdue]="isOverdue(invoice)">
+          <td>
+            <a [routerLink]="['/sales/invoices', invoice.id]" class="invoice-link">
+              {{ invoice.invoiceNumber }}
+            </a>
+          </td>
+          <td>{{ invoice.customerName }}</td>
+          <td>{{ invoice.invoiceDate | date: 'dd/MM/yyyy' }}</td>
+          <td>
+            <span [class.text-danger]="isOverdue(invoice)">
+              {{ invoice.dueDate | date: 'dd/MM/yyyy' }}
+            </span>
+          </td>
+          <td class="amount-cell">₹{{ invoice.totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
+          <td class="amount-cell">₹{{ invoice.paidAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
+          <td class="amount-cell">
+            <span [class.text-danger]="invoice.balanceAmount > 0">
+              ₹{{ invoice.balanceAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(invoice.paymentStatus)">
+              {{ invoice.paymentStatus }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button
+                class="btn-icon"
+                [routerLink]="['/sales/invoices', invoice.id]"
+                title="View Details"
+              >
+                👁️
+              </button>
+              <button
+                class="btn-icon"
+                *ngIf="invoice.paymentStatus !== InvoicePaymentStatus.Paid && invoice.paymentStatus !== InvoicePaymentStatus.Cancelled"
+                [routerLink]="['/sales/invoices', invoice.id]"
+                title="Record Payment"
+              >
+                💰
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="empty-state" *ngIf="filteredInvoices.length === 0">
+      <p>No invoices found</p>
+      <button class="btn btn-secondary" (click)="filterStatus = 'all'; applyFilter()">
+        Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-spinner" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Loading invoices...</p>
+  </div>
+</div>

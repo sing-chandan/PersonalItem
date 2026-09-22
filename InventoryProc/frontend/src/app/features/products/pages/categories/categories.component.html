@@ -1,0 +1,126 @@
+<div class="categories-container">
+  <div class="header">
+    <h1>Product Categories</h1>
+    <div class="header-actions">
+      <input
+        type="file"
+        #fileInput
+        accept=".xlsx"
+        style="display: none"
+        (change)="onFileSelected($event)"
+      />
+      <button class="btn btn-secondary" routerLink="/products/list">Back to Products</button>
+      <button class="btn btn-secondary" (click)="downloadTemplate()">
+        📥 Download Template
+      </button>
+      <button class="btn btn-secondary" (click)="fileInput.click()" [disabled]="uploading">
+        {{ uploading ? 'Uploading...' : '📤 Import Excel' }}
+      </button>
+      <button class="btn btn-primary" (click)="showAddForm()" *ngIf="!showForm">
+        <span>+</span> Add Category
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <div *ngIf="showForm" class="form-card">
+    <h2>{{ isEditMode ? 'Edit Category' : 'New Category' }}</h2>
+    <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Category Name *</label>
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            placeholder="Enter category name"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="code">Category Code *</label>
+          <input
+            type="text"
+            id="code"
+            formControlName="code"
+            placeholder="Enter category code"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea
+          id="description"
+          formControlName="description"
+          rows="2"
+          placeholder="Enter description (optional)"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="parentCategoryId">Parent Category</label>
+        <select id="parentCategoryId" formControlName="parentCategoryId">
+          <option value="">None (Top Level)</option>
+          <option *ngFor="let category of categories" [value]="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancelEdit()" [disabled]="loading">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="loading || categoryForm.invalid">
+          {{ loading ? 'Saving...' : (isEditMode ? 'Update' : 'Create') }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div *ngIf="loading && !showForm" class="loading">
+    Loading categories...
+  </div>
+
+  <div *ngIf="!loading && categories.length === 0 && !showForm" class="no-data">
+    <p>No categories found.</p>
+    <button class="btn btn-primary" (click)="showAddForm()">Add Your First Category</button>
+  </div>
+
+  <div *ngIf="!loading && categories.length > 0" class="categories-grid">
+    <div class="category-card" *ngFor="let category of categories">
+      <div class="category-header">
+        <h3>{{ category.name }}</h3>
+        <span class="category-code">{{ category.code }}</span>
+      </div>
+
+      <div class="category-info" *ngIf="category.description">
+        <p>{{ category.description }}</p>
+      </div>
+
+      <div class="category-stats">
+        <div class="stat">
+          <span class="label">Products:</span>
+          <span class="value">{{ category.productCount }}</span>
+        </div>
+        <div class="stat" *ngIf="category.parentCategoryName">
+          <span class="label">Parent:</span>
+          <span class="value">{{ category.parentCategoryName }}</span>
+        </div>
+      </div>
+
+      <div class="category-actions">
+        <button class="btn btn-sm btn-secondary" (click)="editCategory(category)">
+          Edit
+        </button>
+        <button class="btn btn-sm btn-danger" (click)="deleteCategory(category.id)">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

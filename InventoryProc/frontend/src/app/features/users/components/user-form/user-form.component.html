@@ -1,0 +1,140 @@
+<div class="user-form-container">
+  <div class="header">
+    <h1>{{ isEditMode ? 'Edit User' : 'Create User' }}</h1>
+    <button class="btn btn-secondary" (click)="onCancel()">Back to List</button>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    Loading user details...
+  </div>
+
+  <form *ngIf="!loading" [formGroup]="userForm" (ngSubmit)="onSubmit()" class="user-form">
+    <div class="form-section">
+      <h2>Account Information</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            [class.error]="userForm.get('email')?.invalid && userForm.get('email')?.touched"
+            placeholder="Enter email address"
+          />
+          <span *ngIf="userForm.get('email')?.errors?.['required'] && userForm.get('email')?.touched" class="error-text">
+            Email is required
+          </span>
+          <span *ngIf="userForm.get('email')?.errors?.['email'] && userForm.get('email')?.touched" class="error-text">
+            Invalid email format
+          </span>
+        </div>
+
+        <div class="form-group" *ngIf="!isEditMode">
+          <label for="password">Password *</label>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            [class.error]="userForm.get('password')?.invalid && userForm.get('password')?.touched"
+            placeholder="Enter password"
+          />
+          <span *ngIf="userForm.get('password')?.errors?.['required'] && userForm.get('password')?.touched" class="error-text">
+            Password is required
+          </span>
+          <span *ngIf="userForm.get('password')?.errors?.['minlength'] && userForm.get('password')?.touched" class="error-text">
+            Password must be at least 6 characters
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Personal Information</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">First Name *</label>
+          <input
+            type="text"
+            id="firstName"
+            formControlName="firstName"
+            [class.error]="userForm.get('firstName')?.invalid && userForm.get('firstName')?.touched"
+            placeholder="Enter first name"
+          />
+          <span *ngIf="userForm.get('firstName')?.errors?.['required'] && userForm.get('firstName')?.touched" class="error-text">
+            First name is required
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="lastName">Last Name *</label>
+          <input
+            type="text"
+            id="lastName"
+            formControlName="lastName"
+            [class.error]="userForm.get('lastName')?.invalid && userForm.get('lastName')?.touched"
+            placeholder="Enter last name"
+          />
+          <span *ngIf="userForm.get('lastName')?.errors?.['required'] && userForm.get('lastName')?.touched" class="error-text">
+            Last name is required
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="mobile">Mobile</label>
+          <input
+            type="text"
+            id="mobile"
+            formControlName="mobile"
+            placeholder="Enter mobile number (optional)"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Role & Access</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="role">Role *</label>
+          <select
+            id="role"
+            formControlName="role"
+            [class.error]="userForm.get('role')?.invalid && userForm.get('role')?.touched"
+          >
+            <option *ngFor="let option of roleOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+          <span *ngIf="userForm.get('role')?.errors?.['required'] && userForm.get('role')?.touched" class="error-text">
+            Role is required
+          </span>
+        </div>
+
+        <div class="form-group" *ngIf="isEditMode">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              id="isActive"
+              formControlName="isActive"
+            />
+            <span>Active User</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="submitting">
+        Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="submitting || userForm.invalid">
+        {{ submitting ? 'Saving...' : (isEditMode ? 'Update User' : 'Create User') }}
+      </button>
+    </div>
+  </form>
+</div>

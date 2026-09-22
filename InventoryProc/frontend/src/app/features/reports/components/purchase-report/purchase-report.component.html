@@ -1,0 +1,176 @@
+<div class="purchase-report-container">
+  <div class="header">
+    <div>
+      <h1>Purchase Report</h1>
+      <p class="subtitle">Analyze purchase spending and vendor performance</p>
+    </div>
+  </div>
+
+  <!-- Filter Form -->
+  <div class="filter-section">
+    <h2>Filters</h2>
+    <form [formGroup]="filterForm" (ngSubmit)="onFilter()">
+      <div class="filter-row">
+        <div class="form-group">
+          <label for="startDate">Start Date</label>
+          <input type="date" id="startDate" formControlName="startDate">
+        </div>
+        <div class="form-group">
+          <label for="endDate">End Date</label>
+          <input type="date" id="endDate" formControlName="endDate">
+        </div>
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary">
+            Apply Filters
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="onReset()">
+            Reset
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+  </div>
+
+  <div *ngIf="report && !loading">
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+      <div class="summary-card purchases">
+        <div class="card-icon">🛒</div>
+        <div class="card-content">
+          <h6>Total Purchases</h6>
+          <h3>{{ formatCurrency(report.totalPurchases) }}</h3>
+          <p>{{ formatNumber(report.totalPurchaseOrders) }} POs</p>
+        </div>
+      </div>
+      <div class="summary-card received">
+        <div class="card-icon">✅</div>
+        <div class="card-content">
+          <h6>Received</h6>
+          <h3>{{ formatCurrency(report.totalReceived) }}</h3>
+          <p>{{ formatNumber(report.totalGRNs) }} GRNs</p>
+        </div>
+      </div>
+      <div class="summary-card pending">
+        <div class="card-icon">⏳</div>
+        <div class="card-content">
+          <h6>Pending</h6>
+          <h3>{{ formatCurrency(report.totalPending) }}</h3>
+          <p>Awaiting receipt</p>
+        </div>
+      </div>
+      <div class="summary-card rate">
+        <div class="card-icon">📊</div>
+        <div class="card-content">
+          <h6>Receipt Rate</h6>
+          <h3>{{ ((report.totalReceived / report.totalPurchases) * 100).toFixed(1) }}%</h3>
+          <p>Of total purchases</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Purchases by Period -->
+    <div class="report-section">
+      <div class="section-header">
+        <h2>Purchases by Period</h2>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th class="text-end">Purchase Amount</th>
+              <th class="text-end">Orders</th>
+              <th class="text-end">Avg Order Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let period of report.purchasesByPeriod">
+              <td>{{ period.date | date:'dd/MM/yyyy' }}</td>
+              <td class="text-end">{{ formatCurrency(period.purchaseAmount) }}</td>
+              <td class="text-end">{{ formatNumber(period.orderCount) }}</td>
+              <td class="text-end">{{ formatCurrency(period.purchaseAmount / period.orderCount) }}</td>
+            </tr>
+            <tr *ngIf="report.purchasesByPeriod.length === 0">
+              <td colspan="4" class="text-center text-muted">No purchases in this period</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Top Vendors & Top Products -->
+    <div class="two-column-grid">
+      <div class="report-section">
+        <div class="section-header">
+          <h2>Top Vendors</h2>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Vendor</th>
+                <th class="text-end">Purchases</th>
+                <th class="text-end">Orders</th>
+                <th class="text-end">Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let vendor of report.topVendors">
+                <td>
+                  <strong>{{ vendor.vendorName }}</strong><br>
+                  <small class="text-muted">{{ vendor.email }}</small>
+                </td>
+                <td class="text-end">{{ formatCurrency(vendor.totalPurchases) }}</td>
+                <td class="text-end">{{ formatNumber(vendor.orderCount) }}</td>
+                <td class="text-end">{{ formatCurrency(vendor.outstandingBalance) }}</td>
+              </tr>
+              <tr *ngIf="report.topVendors.length === 0">
+                <td colspan="4" class="text-center text-muted">No vendor data available</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="report-section">
+        <div class="section-header">
+          <h2>Top Purchased Products</h2>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th class="text-end">Quantity</th>
+                <th class="text-end">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let product of report.topProducts">
+                <td>
+                  <strong>{{ product.productName }}</strong><br>
+                  <small class="text-muted">{{ product.productCode }}</small>
+                </td>
+                <td class="text-end">{{ formatNumber(product.quantityPurchased) }}</td>
+                <td class="text-end">{{ formatCurrency(product.purchaseAmount) }}</td>
+              </tr>
+              <tr *ngIf="report.topProducts.length === 0">
+                <td colspan="3" class="text-center text-muted">No product data available</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

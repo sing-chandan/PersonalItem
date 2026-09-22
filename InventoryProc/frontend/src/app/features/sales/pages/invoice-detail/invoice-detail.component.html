@@ -1,0 +1,315 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>Invoice Details</h1>
+    <button class="btn btn-secondary" (click)="back()">
+      ← Back to Invoices
+    </button>
+  </div>
+
+  <!-- Success Message -->
+  <div class="success-message" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Loading Spinner -->
+  <div class="loading-spinner" *ngIf="isLoading && !invoice">
+    <div class="spinner"></div>
+    <p>Loading invoice details...</p>
+  </div>
+
+  <!-- Invoice Details -->
+  <div class="detail-card" *ngIf="invoice">
+    <!-- Header with Status and Actions -->
+    <div class="card-header">
+      <div class="header-left">
+        <h2>{{ invoice.invoiceNumber }}</h2>
+        <span class="status-badge" [ngClass]="getStatusBadgeClass(invoice.paymentStatus)">
+          {{ invoice.paymentStatus }}
+        </span>
+        <span class="overdue-badge" *ngIf="isOverdue()">
+          Overdue
+        </span>
+      </div>
+      <div class="header-actions">
+        <button
+          class="btn btn-success btn-sm"
+          *ngIf="canRecordPayment()"
+          (click)="openPaymentModal()"
+          [disabled]="isLoading">
+          💰 Record Payment
+        </button>
+        <button
+          class="btn btn-info btn-sm"
+          *ngIf="invoice.salesOrderId"
+          (click)="viewSalesOrder()"
+          [disabled]="isLoading">
+          📄 View Sales Order
+        </button>
+        <button
+          class="btn btn-warning btn-sm"
+          *ngIf="invoice.paymentStatus !== InvoicePaymentStatus.Cancelled"
+          (click)="voidInvoice()"
+          [disabled]="isLoading">
+          🚫 Void Invoice
+        </button>
+      </div>
+    </div>
+
+    <!-- Invoice Information -->
+    <div class="info-section">
+      <h3>Invoice Information</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="label">Invoice Number:</span>
+          <span class="value">{{ invoice.invoiceNumber }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Invoice Date:</span>
+          <span class="value">{{ invoice.invoiceDate | date:'medium' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Due Date:</span>
+          <span class="value" [class.text-danger]="isOverdue()">
+            {{ invoice.dueDate | date:'medium' }}
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="label">Customer:</span>
+          <span class="value">{{ invoice.customerName }}</span>
+        </div>
+        <div class="info-item" *ngIf="invoice.customerGSTNumber">
+          <span class="label">Customer GST:</span>
+          <span class="value">{{ invoice.customerGSTNumber }}</span>
+        </div>
+        <div class="info-item" *ngIf="invoice.salesOrderNumber">
+          <span class="label">Sales Order:</span>
+          <span class="value">
+            <a [routerLink]="['/sales/orders', invoice.salesOrderId]" class="link">
+              {{ invoice.salesOrderNumber }}
+            </a>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Summary -->
+    <div class="info-section payment-summary">
+      <h3>Payment Summary</h3>
+      <div class="payment-grid">
+        <div class="payment-item">
+          <span class="label">Total Amount:</span>
+          <span class="value amount">₹{{ invoice.totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</span>
+        </div>
+        <div class="payment-item">
+          <span class="label">Paid Amount:</span>
+          <span class="value amount paid">₹{{ invoice.paidAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</span>
+        </div>
+        <div class="payment-item">
+          <span class="label">Balance Amount:</span>
+          <span class="value amount balance" [class.zero]="invoice.balanceAmount === 0">
+            ₹{{ invoice.balanceAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Addresses -->
+    <div class="info-section">
+      <h3>Addresses</h3>
+      <div class="address-grid">
+        <div class="address-block">
+          <h4>Billing Address</h4>
+          <p>{{ invoice.billingAddress || 'Not specified' }}</p>
+        </div>
+        <div class="address-block">
+          <h4>Shipping Address</h4>
+          <p>{{ invoice.shippingAddress || 'Not specified' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Line Items -->
+    <div class="info-section">
+      <h3>Line Items</h3>
+      <div class="table-container">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Code</th>
+              <th>HSN</th>
+              <th>Quantity</th>
+              <th>Unit</th>
+              <th>Unit Price</th>
+              <th>Tax Rate</th>
+              <th>Tax Amount</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of invoice.items">
+              <td>{{ item.productName }}</td>
+              <td>{{ item.productCode }}</td>
+              <td>{{ item.hsnCode || '-' }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ item.unit }}</td>
+              <td class="amount-cell">₹{{ item.unitPrice.toLocaleString('en-IN', {minimumFractionDigits: 2}) }}</td>
+              <td>{{ item.taxRate }}%</td>
+              <td class="amount-cell">₹{{ item.taxAmount.toLocaleString('en-IN', {minimumFractionDigits: 2}) }}</td>
+              <td class="amount-cell">₹{{ (item.totalPrice + item.taxAmount).toLocaleString('en-IN', {minimumFractionDigits: 2}) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Invoice Totals -->
+      <div class="totals-section">
+        <div class="total-row">
+          <span class="total-label">Subtotal:</span>
+          <span class="total-value">₹{{ invoice.subTotal.toLocaleString('en-IN', {minimumFractionDigits: 2}) }}</span>
+        </div>
+        <div class="total-row">
+          <span class="total-label">Tax Amount:</span>
+          <span class="total-value">₹{{ invoice.taxAmount.toLocaleString('en-IN', {minimumFractionDigits: 2}) }}</span>
+        </div>
+        <div class="total-row" *ngIf="invoice.discountAmount > 0">
+          <span class="total-label">Discount:</span>
+          <span class="total-value">-₹{{ invoice.discountAmount.toLocaleString('en-IN', {minimumFractionDigits: 2}) }}</span>
+        </div>
+        <div class="total-row total-final">
+          <span class="total-label">Total Amount:</span>
+          <span class="total-value">₹{{ invoice.totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2}) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment History -->
+    <div class="info-section" *ngIf="invoice.payments && invoice.payments.length > 0">
+      <h3>Payment History</h3>
+      <div class="table-container">
+        <table class="payments-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Method</th>
+              <th>Reference</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let payment of invoice.payments">
+              <td>{{ payment.paymentDate | date:'medium' }}</td>
+              <td class="amount-cell">₹{{ payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2}) }}</td>
+              <td>{{ payment.paymentMethod }}</td>
+              <td>{{ payment.reference || '-' }}</td>
+              <td>{{ payment.notes || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="info-section" *ngIf="invoice.notes">
+      <h3>Notes</h3>
+      <p class="notes-text">{{ invoice.notes }}</p>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="danger-zone" *ngIf="invoice.paymentStatus === InvoicePaymentStatus.Cancelled || invoice.paymentStatus === InvoicePaymentStatus.Unpaid">
+      <h3>Danger Zone</h3>
+      <button class="btn btn-danger" (click)="deleteInvoice()" [disabled]="isLoading">
+        🗑️ Delete Invoice
+      </button>
+      <p class="warning-text">This action cannot be undone.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal-overlay" *ngIf="showPaymentModal" (click)="closePaymentModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Record Payment</h2>
+      <button class="close-btn" (click)="closePaymentModal()">✕</button>
+    </div>
+
+    <form [formGroup]="paymentForm" (ngSubmit)="recordPayment()">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="amount">Amount *</label>
+          <input
+            type="number"
+            id="amount"
+            formControlName="amount"
+            class="form-control"
+            step="0.01"
+            min="0.01"
+            [max]="invoice?.balanceAmount || 9999999"
+            placeholder="Enter payment amount">
+          <small class="help-text">Balance: ₹{{ invoice?.balanceAmount.toLocaleString('en-IN', {minimumFractionDigits: 2}) }}</small>
+        </div>
+
+        <div class="form-group">
+          <label for="paymentMethod">Payment Method *</label>
+          <select id="paymentMethod" formControlName="paymentMethod" class="form-control">
+            <option value="Cash">Cash</option>
+            <option value="Cheque">Cheque</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+            <option value="Card">Card</option>
+            <option value="UPI">UPI</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="paymentDate">Payment Date *</label>
+          <input
+            type="date"
+            id="paymentDate"
+            formControlName="paymentDate"
+            class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="reference">Reference / Transaction ID</label>
+          <input
+            type="text"
+            id="reference"
+            formControlName="reference"
+            class="form-control"
+            placeholder="Cheque number, transaction ID, etc.">
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Notes</label>
+          <textarea
+            id="notes"
+            formControlName="notes"
+            class="form-control"
+            rows="3"
+            placeholder="Additional notes"></textarea>
+        </div>
+
+        <div class="error-message" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closePaymentModal()">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="paymentForm.invalid || isLoading">
+          {{ isLoading ? 'Recording...' : 'Record Payment' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
