@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Exec(Get-ChildItem)",
+      "Exec(flutter)",
+      "Exec(Select-Object)",
+      "Exec(git clone)",
+      "Exec($env:Path)",
+      "Exec(Out-Null)",
+      "Exec(dart run)",
+      "Exec(dart format)"
+    ]
+  }
+}
