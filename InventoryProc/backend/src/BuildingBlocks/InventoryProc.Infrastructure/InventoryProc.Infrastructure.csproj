@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="EPPlus" Version="7.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InventoryProc.SharedKernel\InventoryProc.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Modules\Tenancy\InventoryProc.Modules.Tenancy\InventoryProc.Modules.Tenancy.csproj" />
+    <ProjectReference Include="..\..\Modules\Identity\InventoryProc.Modules.Identity\InventoryProc.Modules.Identity.csproj" />
+    <ProjectReference Include="..\..\Modules\Products\InventoryProc.Modules.Products.csproj" />
+    <ProjectReference Include="..\..\Modules\Sales\InventoryProc.Modules.Sales.csproj" />
+    <ProjectReference Include="..\..\Modules\Purchases\InventoryProc.Modules.Purchases.csproj" />
+    <ProjectReference Include="..\..\Modules\Reports\InventoryProc.Modules.Reports.csproj" />
+  </ItemGroup>
+
+</Project>
