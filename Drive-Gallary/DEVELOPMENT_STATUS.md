@@ -1,7 +1,25 @@
 # Development Status
 
 ## Current Phase
-Phase 1 — Local Media (in progress; runs cleanly in Chrome).
+Phase 2 — Google Drive (code complete; real connection gated on OAuth
+credentials). Next: Phase 3 — Linked Albums.
+
+## Phase 2 progress
+- `DriveRepository` interface + `DriveRepositoryImpl` (googleapis Drive v3):
+  folder create/get/find/rename/delete, file upload/get/rename/list/download,
+  permission create/delete.
+- `AuthService` + `GoogleAuthService` (google_sign_in 7.x): separate
+  authenticate + authorize (drive.file scope), auth-state stream, session
+  restore, sign-out/disconnect, authorized HTTP client for googleapis.
+- `SettingsRepository` (key/value) + `DriveRootService` (create/reuse + persist
+  root folder id; never searches by name during normal use — spec §17).
+- Providers: auth, authState stream, drive repo, drive root, settings, setting
+  watch. Owner id now uses the signed-in Google id when available.
+- Settings screen: connect/sign-out/disconnect, Drive root setup, graceful web
+  messaging. Home app bar shows cloud/settings entry.
+- Credential setup documented in DRIVE_INTEGRATION.md (`--dart-define`).
+- App boots cleanly in Chrome; missing-credentials handled gracefully.
+- Tests: +3 DriveRootService tests (fake Drive repo) = 15 passing.
 
 ## Phase 1 progress
 - Album service (create / nested / rename / soft-delete) + providers.
@@ -52,7 +70,7 @@ enumeration + runtime media permissions (cannot run/test on web).
 ## Tests
 - dart format: PASS
 - flutter analyze: PASS (no issues)
-- flutter test: PASS (12/12)
+- flutter test: PASS (15/15)
 - Web run (`flutter run -d chrome`): PASS (loads home, DB works)
 - Android build (`flutter build apk --debug`): BLOCKED — Android SDK not
   installed in this environment (see TECHNICAL_LIMITATIONS.md). Interim gate is

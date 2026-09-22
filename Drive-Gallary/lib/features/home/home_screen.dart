@@ -17,8 +17,24 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final rootAlbums = ref.watch(childAlbumsProvider(null));
 
+    final user = ref.watch(authStateProvider).value;
+
     return Scaffold(
-      appBar: AppBar(title: const Text(AppConstants.appName)),
+      appBar: AppBar(
+        title: const Text(AppConstants.appName),
+        actions: [
+          IconButton(
+            tooltip: user == null ? 'Not connected' : user.email,
+            icon: Icon(user == null ? Icons.cloud_off : Icons.cloud_done),
+            onPressed: () => context.push(Routes.settings),
+          ),
+          IconButton(
+            tooltip: 'Settings',
+            icon: const Icon(Icons.settings),
+            onPressed: () => context.push(Routes.settings),
+          ),
+        ],
+      ),
       body: rootAlbums.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Could not load albums.\n$e')),

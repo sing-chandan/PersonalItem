@@ -15,6 +15,21 @@ class AppConstants {
   static const String driveFileScope =
       'https://www.googleapis.com/auth/drive.file';
 
+  static const List<String> googleSignInScopes = <String>[
+    'email',
+    'profile',
+    driveFileScope,
+  ];
+
+  /// OAuth client ids provided at build time via --dart-define. Empty until the
+  /// project owner supplies Google Cloud credentials. Never commit real values.
+  static const String googleWebClientId = String.fromEnvironment(
+    'GOOGLE_WEB_CLIENT_ID',
+  );
+  static const String googleServerClientId = String.fromEnvironment(
+    'GOOGLE_SERVER_CLIENT_ID',
+  );
+
   /// Upload retry policy.
   static const int maxUploadAttempts = 6;
   static const Duration baseRetryBackoff = Duration(seconds: 4);

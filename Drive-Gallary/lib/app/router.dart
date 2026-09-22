@@ -3,12 +3,14 @@ import 'package:go_router/go_router.dart';
 
 import '../features/albums/album_detail_screen.dart';
 import '../features/home/home_screen.dart';
+import '../features/settings/settings_screen.dart';
 
 /// Route path constants and builders (avoid magic strings).
 class Routes {
   Routes._();
   static const home = '/';
   static const album = '/album/:id';
+  static const settings = '/settings';
 
   static String albumPath(String id) => '/album/$id';
 }
@@ -25,6 +27,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: Routes.album,
         builder: (context, state) =>
             AlbumDetailScreen(albumId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: Routes.settings,
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );
