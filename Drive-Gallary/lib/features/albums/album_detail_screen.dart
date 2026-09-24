@@ -4,13 +4,17 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/providers.dart';
 import '../../app/router.dart';
+import '../../core/errors/app_error.dart';
 import '../../domain/models/album.dart';
 import '../../domain/models/enums.dart';
 import '../../domain/models/media_item.dart';
+import '../../domain/services/remote_sync_service.dart';
 import '../../widgets/media_thumbnail.dart';
+import '../../widgets/sync_status_chip.dart';
 import '../media/media_detail_screen.dart';
 import 'widgets/album_dialogs.dart';
 import 'widgets/album_tile.dart';
+import 'widgets/bulk_rename_dialog.dart';
 
 /// Album detail: shows sub-albums and the media grid, and lets the user add
 /// photos (picker / camera) and manage the album. Works fully offline.
@@ -62,10 +66,58 @@ class _AlbumDetailBody extends ConsumerWidget {
             icon: const Icon(Icons.create_new_folder_outlined),
             onPressed: () => _createSubAlbum(context, ref),
           ),
+          PopupMenuButton<String>(
+            onSelected: (v) {
+              if (v == 'repair') _repairLink(context, ref);
+              if (v == 'bulk_rename') _bulkRename(context, ref);
+              if (v == 'sync_drive') _syncFromDrive(context, ref);
+              if (v == 'members') {
+                context.push(Routes.albumMembersPath(album.id));
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'members',
+                child: Text('Share / Members'),
+              ),
+              const PopupMenuItem(
+                value: 'sync_drive',
+                child: Text('Sync from Drive'),
+              ),
+              const PopupMenuItem(
+                value: 'bulk_rename',
+                child: Text('Bulk rename photos'),
+              ),
+              const PopupMenuItem(
+                value: 'repair',
+                child: Text('Repair Drive link'),
+              ),
+            ],
+          ),
         ],
       ),
       body: CustomScrollView(
         slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              child: Row(
+                children: [
+                  AlbumCloudStatusChip(
+                    status: _aggregateStatus(
+                      album,
+                      mediaAsync.value ?? const [],
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${(mediaAsync.value ?? const []).length} photos',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ),
           childrenAsync.maybeWhen(
             data: (children) => _subAlbumsSliver(context, ref, children),
             orElse: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
@@ -181,16 +233,44 @@ class _AlbumDetailBody extends ConsumerWidget {
     );
   }
 
+  /// Derives the album-level cloud status from its media (spec §35).
+  AlbumCloudStatus _aggregateStatus(Album album, List<MediaItem> media) {
+    if (!album.isDriveLinked) return AlbumCloudStatus.notLinked;
+    var hasFailed = false;
+    var hasUploading = false;
+    var hasWaiting = false;
+    for (final m in media) {
+      switch (m.syncStatus) {
+        case SyncStatus.failed:
+          hasFailed = true;
+        case SyncStatus.uploading:
+        case SyncStatus.queued:
+          hasUploading = true;
+        case SyncStatus.waitingForNetwork:
+        case SyncStatus.localOnly:
+          hasWaiting = true;
+        default:
+          break;
+      }
+    }
+    if (hasFailed) return AlbumCloudStatus.failed;
+    if (hasUploading) return AlbumCloudStatus.uploading;
+    if (hasWaiting) return AlbumCloudStatus.waitingForNetwork;
+    return AlbumCloudStatus.synced;
+  }
+
   Future<void> _createSubAlbum(BuildContext context, WidgetRef ref) async {
     final name = await promptAlbumName(context, title: 'New sub-album');
-    if (name == null || name.isEmpty) return;
-    await ref
-        .read(albumServiceProvider)
+    if (name == null || name.isEmpty || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await ref
+        .read(linkedAlbumServiceProvider)
         .createAlbum(
           name: name,
           ownerUserId: ref.read(currentOwnerIdProvider),
           parentAlbumId: album.id,
         );
+    messenger.showSnackBar(SnackBar(content: Text(linkResultMessage(result))));
   }
 
   Future<void> _renameAlbum(
@@ -205,7 +285,132 @@ class _AlbumDetailBody extends ConsumerWidget {
       actionLabel: 'Rename',
     );
     if (name == null || name.isEmpty) return;
-    await ref.read(albumServiceProvider).rename(target, name);
+    await ref.read(linkedAlbumServiceProvider).rename(target, name);
+  }
+
+  Future<void> _bulkRename(BuildContext context, WidgetRef ref) async {
+    final media = await ref
+        .read(mediaRepositoryProvider)
+        .getMediaInAlbum(album.id, limit: 100000);
+    if (!context.mounted) return;
+    if (media.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('No photos to rename.')));
+      return;
+    }
+    // Order by capture time (fallback createdAt), oldest first, for numbering.
+    media.sort((a, b) {
+      final at = a.capturedAt ?? a.createdAt;
+      final bt = b.capturedAt ?? b.createdAt;
+      return at.compareTo(bt);
+    });
+    final options = await promptBulkRename(
+      context,
+      categories: ref.read(categoriesProvider),
+      photoCount: media.length,
+    );
+    if (options == null || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final updated = await ref
+        .read(bulkMediaServiceProvider)
+        .rename(
+          items: media,
+          category: options.category,
+          startNumber: options.startNumber,
+        );
+    messenger.showSnackBar(
+      SnackBar(content: Text('Renamed ${updated.length} photo(s).')),
+    );
+  }
+
+  Future<void> _syncFromDrive(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final remote = ref.read(remoteSyncServiceProvider);
+    try {
+      final result = await remote.scan(album);
+      final imported = await remote.importRemoteOnly(album, result.remoteOnly);
+      if (context.mounted && result.conflicts.isNotEmpty) {
+        await _resolveConflicts(context, ref, result.conflicts);
+      }
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Drive scan: $imported new remote file(s), '
+            '${result.conflicts.length} conflict(s).',
+          ),
+        ),
+      );
+    } on AppError catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (e) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not sync from Drive.')),
+      );
+    }
+  }
+
+  Future<void> _resolveConflicts(
+    BuildContext context,
+    WidgetRef ref,
+    List<SyncConflict> conflicts,
+  ) async {
+    final remote = ref.read(remoteSyncServiceProvider);
+    for (final c in conflicts) {
+      if (!context.mounted) return;
+      final choice = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Sync Conflict'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Local:'),
+              Text(
+                c.local.fileName,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text('Cloud:'),
+              Text(
+                c.remote.name,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'local'),
+              child: const Text('Keep Local'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'cloud'),
+              child: const Text('Keep Cloud'),
+            ),
+          ],
+        ),
+      );
+      if (choice == 'local') {
+        await remote.keepLocal(c);
+      } else if (choice == 'cloud') {
+        await remote.keepCloud(c);
+      }
+    }
+  }
+
+  Future<void> _repairLink(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await ref.read(linkedAlbumServiceProvider).repairLink(album);
+    ref.invalidate(albumByIdProvider(album.id));
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          result.linked == true
+              ? 'Drive link OK for "${result.album.name}".'
+              : 'Could not link to Drive. Connect Google, then try again.',
+        ),
+      ),
+    );
   }
 
   Future<void> _deleteAlbum(
@@ -232,20 +437,24 @@ class _AlbumDetailBody extends ConsumerWidget {
     final added = await ref
         .read(mediaServiceProvider)
         .addToAlbum(album.id, picked);
+    await ref.read(syncControllerProvider).enqueueUploads(added);
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Added ${added.length} item(s).')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Added ${added.length} item(s). Uploading...')),
+      );
     }
   }
 
   Future<void> _capture(BuildContext context, WidgetRef ref) async {
     final shot = await ref.read(mediaSourceProvider).capturePhoto();
     if (shot == null) return;
-    await ref.read(mediaServiceProvider).addToAlbum(album.id, [shot]);
+    final added = await ref.read(mediaServiceProvider).addToAlbum(album.id, [
+      shot,
+    ]);
+    await ref.read(syncControllerProvider).enqueueUploads(added);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Photo captured and added.')),
+        const SnackBar(content: Text('Photo captured and added. Uploading...')),
       );
     }
   }

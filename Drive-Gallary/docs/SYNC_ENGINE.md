@@ -52,6 +52,26 @@ until connectivity returns (`connectivity_plus`), then transition
 
 ## Implementation status
 
-Phase 0 defines the persistence layer (`SyncJobs` table + repository). The
-worker, WorkManager integration, and progress reporting are implemented in
-Phase 4.
+Phase 4 implemented:
+- `UploadEngine.processJob` — pure per-job execution: duplicate short-circuit
+  via `driveFileId`, links the album if needed, reads bytes
+  (`MediaBytesReader`), uploads via `DriveRepository`, persists `driveFileId` +
+  `synced`, and on failure requeues with bounded exponential backoff
+  (`core/utils/backoff.dart`) up to `maxUploadAttempts`.
+- `SyncController` — in-app processor: `enqueueUpload(s)`, `processQueue`
+  (re-entrancy guarded), connectivity-aware (defers when offline, resumes on
+  `onConnectivityChanged`), and queue actions (retry/pause/resume/clear).
+  Started at app launch (`app.dart`) so the persisted queue is recovered after
+  restart.
+- `MediaBytesReader` / `MediaBytesReaderImpl` — file path (native) or blob URL
+  (web).
+- Upload Queue screen (`features/sync`) with per-item status + actions.
+
+### Android background execution (device stage)
+
+The in-app `SyncController` processes uploads while the app is running and
+resumes on next launch. True OS-scheduled background upload after the UI is
+closed uses **WorkManager** on Android: a periodic/one-off worker will invoke
+the same `UploadEngine` over the persisted `SyncJobs` queue. This Kotlin/
+WorkManager wiring is added at the device stage (cannot run on web); the engine
+is already decoupled so it plugs in without logic changes.

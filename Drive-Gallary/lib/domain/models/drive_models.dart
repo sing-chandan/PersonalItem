@@ -8,6 +8,14 @@ class DriveFolder {
   final String? parentId;
 }
 
+class DrivePermission {
+  const DrivePermission({required this.id, this.email, this.role});
+
+  final String id;
+  final String? email;
+  final String? role;
+}
+
 class DriveFile {
   const DriveFile({
     required this.id,

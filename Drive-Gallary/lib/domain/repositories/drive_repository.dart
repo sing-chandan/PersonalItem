@@ -37,7 +37,10 @@ abstract class DriveRepository {
 
   Future<Uint8List> downloadFile(String id);
 
-  Future<void> createPermission(String fileId, String email, MemberRole role);
+  /// Grants [email] access to [fileId] with [role]. Returns the permission id.
+  Future<String> createPermission(String fileId, String email, MemberRole role);
+
+  Future<List<DrivePermission>> listPermissions(String fileId);
 
   Future<void> deletePermission(String fileId, String permissionId);
 }

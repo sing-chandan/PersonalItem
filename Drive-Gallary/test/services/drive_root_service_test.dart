@@ -18,8 +18,11 @@ class FakeDriveRepository implements DriveRepository {
   @override
   Future<DriveFolder> createFolder(String name, {String? parentId}) async {
     createCalls++;
-    final folder =
-        DriveFolder(id: 'id${_seq++}', name: name, parentId: parentId);
+    final folder = DriveFolder(
+      id: 'id${_seq++}',
+      name: name,
+      parentId: parentId,
+    );
     folders[folder.id] = folder;
     return folder;
   }
@@ -35,10 +38,22 @@ class FakeDriveRepository implements DriveRepository {
     return null;
   }
 
+  /// Uploaded files, keyed by file id.
+  final Map<String, DriveFile> files = {};
+
   @override
-  Future<void> renameFolder(String id, String newName) async {}
+  Future<void> renameFolder(String id, String newName) async {
+    final f = folders[id];
+    if (f != null) {
+      folders[id] = DriveFolder(id: id, name: newName, parentId: f.parentId);
+    }
+  }
+
   @override
-  Future<void> deleteFolder(String id) async {}
+  Future<void> deleteFolder(String id) async {
+    folders.remove(id);
+  }
+
   @override
   Future<DriveFile> uploadFile({
     required String parentId,
@@ -46,21 +61,69 @@ class FakeDriveRepository implements DriveRepository {
     required String mimeType,
     required Uint8List bytes,
     void Function(int, int)? onProgress,
-  }) async =>
-      throw UnimplementedError();
+  }) async {
+    final file = DriveFile(
+      id: 'file${_seq++}',
+      name: name,
+      mimeType: mimeType,
+      size: bytes.length,
+      parentId: parentId,
+    );
+    files[file.id] = file;
+    return file;
+  }
+
   @override
-  Future<DriveFile?> getFileById(String id) async => null;
+  Future<DriveFile?> getFileById(String id) async => files[id];
   @override
-  Future<void> renameFile(String id, String newName) async {}
+  Future<void> renameFile(String id, String newName) async {
+    final f = files[id];
+    if (f != null) {
+      files[id] = DriveFile(
+        id: id,
+        name: newName,
+        mimeType: f.mimeType,
+        size: f.size,
+        parentId: f.parentId,
+      );
+    }
+  }
+
   @override
-  Future<List<DriveFile>> listChildren(String parentId) async => [];
+  Future<List<DriveFile>> listChildren(String parentId) async =>
+      files.values.where((f) => f.parentId == parentId).toList();
   @override
   Future<Uint8List> downloadFile(String id) async => Uint8List(0);
+
+  /// Permissions per fileId: list of (permissionId, email, role).
+  final Map<String, List<DrivePermission>> permissions = {};
+  int _permSeq = 0;
+
   @override
-  Future<void> createPermission(
-      String fileId, String email, MemberRole role) async {}
+  Future<String> createPermission(
+    String fileId,
+    String email,
+    MemberRole role,
+  ) async {
+    final list = permissions.putIfAbsent(fileId, () => []);
+    list.removeWhere((p) => p.email == email);
+    final perm = DrivePermission(
+      id: 'perm${_permSeq++}',
+      email: email,
+      role: role.name,
+    );
+    list.add(perm);
+    return perm.id;
+  }
+
   @override
-  Future<void> deletePermission(String fileId, String permissionId) async {}
+  Future<List<DrivePermission>> listPermissions(String fileId) async =>
+      permissions[fileId] ?? const [];
+
+  @override
+  Future<void> deletePermission(String fileId, String permissionId) async {
+    permissions[fileId]?.removeWhere((p) => p.id == permissionId);
+  }
 }
 
 void main() {

@@ -1,5 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../../domain/services/linked_album_service.dart';
+
+/// User-facing message describing whether an album was linked to Drive.
+String linkResultMessage(AlbumLinkResult result) {
+  if (result.linked == true) {
+    return 'Album "${result.album.name}" created and linked to Drive.';
+  }
+  return 'Album "${result.album.name}" created. It will link to Drive once you '
+      'connect Google (use "Repair Drive link").';
+}
+
 /// Prompts for an album name. Returns the trimmed name, or null if cancelled.
 Future<String?> promptAlbumName(
   BuildContext context, {

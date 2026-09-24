@@ -29,6 +29,11 @@ class HomeScreen extends ConsumerWidget {
             onPressed: () => context.push(Routes.settings),
           ),
           IconButton(
+            tooltip: 'Upload Queue',
+            icon: const Icon(Icons.cloud_sync),
+            onPressed: () => context.push(Routes.uploadQueue),
+          ),
+          IconButton(
             tooltip: 'Settings',
             icon: const Icon(Icons.settings),
             onPressed: () => context.push(Routes.settings),
@@ -45,6 +50,21 @@ class HomeScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
             children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                child: Card(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: ListTile(
+                    leading: const Icon(Icons.add_a_photo, size: 32),
+                    title: const Text('New Photos'),
+                    subtitle: const Text(
+                      'Pick newly downloaded photos and add them to an album.',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push(Routes.newPhotos),
+                  ),
+                ),
+              ),
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
                 child: Text(
@@ -73,10 +93,12 @@ class HomeScreen extends ConsumerWidget {
 
   Future<void> _createAlbum(BuildContext context, WidgetRef ref) async {
     final name = await promptAlbumName(context, title: 'Create album');
-    if (name == null || name.isEmpty) return;
-    await ref
-        .read(albumServiceProvider)
+    if (name == null || name.isEmpty || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await ref
+        .read(linkedAlbumServiceProvider)
         .createAlbum(name: name, ownerUserId: ref.read(currentOwnerIdProvider));
+    messenger.showSnackBar(SnackBar(content: Text(linkResultMessage(result))));
   }
 
   Future<void> _renameAlbum(
@@ -93,7 +115,7 @@ class HomeScreen extends ConsumerWidget {
       actionLabel: 'Rename',
     );
     if (name == null || name.isEmpty) return;
-    await ref.read(albumServiceProvider).rename(album, name);
+    await ref.read(linkedAlbumServiceProvider).rename(album, name);
   }
 
   Future<void> _deleteAlbum(

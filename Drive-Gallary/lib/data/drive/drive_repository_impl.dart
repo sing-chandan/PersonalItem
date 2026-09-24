@@ -180,7 +180,7 @@ class DriveRepositoryImpl implements DriveRepository {
   }
 
   @override
-  Future<void> createPermission(
+  Future<String> createPermission(
     String fileId,
     String email,
     MemberRole role,
@@ -190,11 +190,31 @@ class DriveRepositoryImpl implements DriveRepository {
       ..type = 'user'
       ..role = _driveRole(role)
       ..emailAddress = email;
-    await api.permissions.create(
+    final created = await api.permissions.create(
       permission,
       fileId,
       sendNotificationEmail: true,
+      $fields: 'id',
     );
+    return created.id ?? '';
+  }
+
+  @override
+  Future<List<DrivePermission>> listPermissions(String fileId) async {
+    final api = await _api();
+    final result = await api.permissions.list(
+      fileId,
+      $fields: 'permissions(id,emailAddress,role)',
+    );
+    return (result.permissions ?? const [])
+        .map(
+          (p) => DrivePermission(
+            id: p.id ?? '',
+            email: p.emailAddress,
+            role: p.role,
+          ),
+        )
+        .toList();
   }
 
   @override

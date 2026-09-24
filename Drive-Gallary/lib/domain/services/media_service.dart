@@ -23,12 +23,18 @@ class MediaService {
   /// Adds picked media to an album, skipping items already present (duplicate
   /// prevention by local MediaStore id when available). Returns the items that
   /// were newly added.
+  ///
+  /// Optionally assigns a [category] and overrides file names via [newNames]
+  /// (parallel to [picked], for bulk rename at add-time).
   Future<List<MediaItem>> addToAlbum(
     String albumId,
-    List<PickedMedia> picked,
-  ) async {
+    List<PickedMedia> picked, {
+    String? category,
+    List<String>? newNames,
+  }) async {
     final added = <MediaItem>[];
-    for (final p in picked) {
+    for (var i = 0; i < picked.length; i++) {
+      final p = picked[i];
       if (p.localMediaStoreId != null) {
         final existing = await _repo.findByLocalStoreId(
           albumId,
@@ -42,13 +48,17 @@ class MediaService {
         localMediaStoreId: p.localMediaStoreId,
         albumId: albumId,
         localUri: p.localUri,
-        fileName: p.fileName,
+        fileName: (newNames != null && i < newNames.length)
+            ? newNames[i]
+            : p.fileName,
         mimeType: p.mimeType,
         sizeBytes: p.sizeBytes,
         width: p.width,
         height: p.height,
         capturedAt: p.capturedAt,
         modifiedAt: p.modifiedAt,
+        category: category,
+        sequenceNumber: newNames != null ? i + 1 : null,
         syncStatus: SyncStatus.localOnly,
         createdAt: now,
         updatedAt: now,
