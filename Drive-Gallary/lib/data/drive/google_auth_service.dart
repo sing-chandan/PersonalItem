@@ -82,22 +82,25 @@ class GoogleAuthService implements AuthService {
     } catch (e) {
       _log.w('Lightweight authentication failed', e);
     }
+    _userController.add(null);
     return null;
   }
 
   @override
   Future<AppUser> signIn() async {
     await initialize();
-    if (!_signIn.supportsAuthenticate()) {
+    final existingAccount = _account;
+    if (!_signIn.supportsAuthenticate() && existingAccount == null) {
       throw AppError.authRequired(
         'Interactive sign-in is not supported on this platform (web uses a '
         'rendered Google button). Test sign-in on an Android device.',
       );
     }
     try {
-      final account = await _signIn.authenticate(
-        scopeHint: AppConstants.googleSignInScopes,
-      );
+      final account = existingAccount ??
+          await _signIn.authenticate(
+            scopeHint: AppConstants.googleSignInScopes,
+          );
       // Ensure Drive authorization is granted (may show a consent screen).
       final authz = await account.authorizationClient.authorizeScopes(
         AppConstants.googleSignInScopes,
@@ -141,6 +144,12 @@ class GoogleAuthService implements AuthService {
   Future<http.Client?> authorizedClient() async {
     final account = _account;
     if (account == null) return null;
+    final authz = await account.authorizationClient.authorizeScopes(
+      AppConstants.googleSignInScopes,
+    );
+    if (authz.accessToken.isEmpty) {
+      throw AppError.authRequired('Drive authorization was not granted.');
+    }
     return _AuthorizedClient(account, http.Client());
   }
 

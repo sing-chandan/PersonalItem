@@ -6,7 +6,7 @@ import '../repositories/album_repository.dart';
 /// Application service that orchestrates album use-cases. Keeps business rules
 /// out of the UI and out of the repository (which is pure persistence).
 class AlbumService {
-  AlbumService(this._repo, {this._ids = const IdGenerator()});
+  AlbumService(this._repo, [this._ids = const IdGenerator()]);
 
   final AlbumRepository _repo;
   final IdGenerator _ids;
