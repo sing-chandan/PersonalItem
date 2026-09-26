@@ -15,6 +15,8 @@ understand the Drive-Linked Gallery Companion.
 4. **[DATABASE.md](DATABASE.md)** — Drift/SQLite schema, indexes, migrations.
 5. **[DRIVE_INTEGRATION.md](DRIVE_INTEGRATION.md)** — Google auth + Drive
    repository, and how to provide OAuth credentials.
+   - **[ANDROID_RELEASE.md](ANDROID_RELEASE.md)** — build a signed production
+     APK/AAB and register the release OAuth client (SHA‑1).
 6. **[SYNC_ENGINE.md](SYNC_ENGINE.md)** — offline-first upload/sync design and
    the Android background story.
 7. **[TESTING.md](TESTING.md)** — how to test, and the acceptance-suite mapping.

@@ -55,8 +55,10 @@ flutter build apk --debug        # once Android SDK installed
 
 ## Android build (device stage)
 
-The CI/dev environment here has no Android SDK, so Android builds are done on a
-machine that has it:
+Do Android builds on a machine with the Android SDK installed.
+
+**Quick reference** (full, step-by-step guide with OAuth/SHA-1 setup is in
+**[docs/ANDROID_RELEASE.md](docs/ANDROID_RELEASE.md)**):
 
 ```
 # One-time
@@ -65,19 +67,19 @@ flutter doctor --android-licenses
 # Debug build
 flutter build apk --debug
 
-# Release builds (configure signing in android/ first)
-flutter build apk --release
-flutter build appbundle --release
+# Release: create a keystore, register its SHA-1 in Google Cloud,
+# add android/key.properties, then:
+flutter build apk --release                 # single APK
+flutter build apk --release --split-per-abi # smaller per-ABI APKs
+flutter build appbundle --release           # AAB for Google Play
 ```
 
-Provide the Google OAuth client id at build/run time:
+Important: on Android, the Google client is resolved from the **package name +
+release keystore SHA-1** (not from `--dart-define`). Register the release SHA-1
+in the same Google Cloud project — see the release guide.
 
-```
-flutter run --dart-define=GOOGLE_WEB_CLIENT_ID=xxxx.apps.googleusercontent.com
-```
-
-See `DRIVE_INTEGRATION.md` for the full Google Cloud / OAuth setup and
-`TECHNICAL_LIMITATIONS.md` for platform notes (WorkManager, MediaStore, web).
+See `docs/DRIVE_INTEGRATION.md` for the Google Cloud / OAuth setup and
+`docs/TECHNICAL_LIMITATIONS.md` for platform notes (WorkManager, MediaStore, web).
 
 ## Configuration / secrets
 
