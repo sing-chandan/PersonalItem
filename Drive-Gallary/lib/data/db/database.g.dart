@@ -3610,26 +3610,28 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   ];
 }
 
-typedef $$UsersTableCreateCompanionBuilder = UsersCompanion Function({
-  required String id,
-  required String googleAccountId,
-  required String email,
-  required String displayName,
-  Value<String?> photoUrl,
-  required DateTime createdAt,
-  required DateTime updatedAt,
-  Value<int> rowid,
-});
-typedef $$UsersTableUpdateCompanionBuilder = UsersCompanion Function({
-  Value<String> id,
-  Value<String> googleAccountId,
-  Value<String> email,
-  Value<String> displayName,
-  Value<String?> photoUrl,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<int> rowid,
-});
+typedef $$UsersTableCreateCompanionBuilder =
+    UsersCompanion Function({
+      required String id,
+      required String googleAccountId,
+      required String email,
+      required String displayName,
+      Value<String?> photoUrl,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$UsersTableUpdateCompanionBuilder =
+    UsersCompanion Function({
+      Value<String> id,
+      Value<String> googleAccountId,
+      Value<String> email,
+      Value<String> displayName,
+      Value<String?> photoUrl,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
 
 class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
   $$UsersTableFilterComposer({
@@ -3852,36 +3854,38 @@ typedef $$UsersTableProcessedTableManager =
       UserRow,
       PrefetchHooks Function()
     >;
-typedef $$AlbumsTableCreateCompanionBuilder = AlbumsCompanion Function({
-  required String id,
-  Value<String?> parentAlbumId,
-  required String name,
-  required String type,
-  required String ownerUserId,
-  Value<String?> driveFolderId,
-  Value<String?> driveParentFolderId,
-  Value<bool> isDriveLinked,
-  Value<bool> autoSyncEnabled,
-  required DateTime createdAt,
-  required DateTime updatedAt,
-  Value<DateTime?> deletedAt,
-  Value<int> rowid,
-});
-typedef $$AlbumsTableUpdateCompanionBuilder = AlbumsCompanion Function({
-  Value<String> id,
-  Value<String?> parentAlbumId,
-  Value<String> name,
-  Value<String> type,
-  Value<String> ownerUserId,
-  Value<String?> driveFolderId,
-  Value<String?> driveParentFolderId,
-  Value<bool> isDriveLinked,
-  Value<bool> autoSyncEnabled,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<DateTime?> deletedAt,
-  Value<int> rowid,
-});
+typedef $$AlbumsTableCreateCompanionBuilder =
+    AlbumsCompanion Function({
+      required String id,
+      Value<String?> parentAlbumId,
+      required String name,
+      required String type,
+      required String ownerUserId,
+      Value<String?> driveFolderId,
+      Value<String?> driveParentFolderId,
+      Value<bool> isDriveLinked,
+      Value<bool> autoSyncEnabled,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$AlbumsTableUpdateCompanionBuilder =
+    AlbumsCompanion Function({
+      Value<String> id,
+      Value<String?> parentAlbumId,
+      Value<String> name,
+      Value<String> type,
+      Value<String> ownerUserId,
+      Value<String?> driveFolderId,
+      Value<String?> driveParentFolderId,
+      Value<bool> isDriveLinked,
+      Value<bool> autoSyncEnabled,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
 
 class $$AlbumsTableFilterComposer
     extends Composer<_$AppDatabase, $AlbumsTable> {
@@ -4198,48 +4202,50 @@ typedef $$AlbumsTableProcessedTableManager =
       AlbumRow,
       PrefetchHooks Function()
     >;
-typedef $$MediaItemsTableCreateCompanionBuilder = MediaItemsCompanion Function({
-  required String id,
-  Value<String?> localMediaStoreId,
-  required String albumId,
-  required String localUri,
-  required String fileName,
-  required String mimeType,
-  Value<int> sizeBytes,
-  Value<int?> width,
-  Value<int?> height,
-  Value<DateTime?> capturedAt,
-  Value<DateTime?> modifiedAt,
-  Value<String?> contentHash,
-  Value<String?> category,
-  Value<int?> sequenceNumber,
-  Value<String?> driveFileId,
-  required String syncStatus,
-  required DateTime createdAt,
-  required DateTime updatedAt,
-  Value<int> rowid,
-});
-typedef $$MediaItemsTableUpdateCompanionBuilder = MediaItemsCompanion Function({
-  Value<String> id,
-  Value<String?> localMediaStoreId,
-  Value<String> albumId,
-  Value<String> localUri,
-  Value<String> fileName,
-  Value<String> mimeType,
-  Value<int> sizeBytes,
-  Value<int?> width,
-  Value<int?> height,
-  Value<DateTime?> capturedAt,
-  Value<DateTime?> modifiedAt,
-  Value<String?> contentHash,
-  Value<String?> category,
-  Value<int?> sequenceNumber,
-  Value<String?> driveFileId,
-  Value<String> syncStatus,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<int> rowid,
-});
+typedef $$MediaItemsTableCreateCompanionBuilder =
+    MediaItemsCompanion Function({
+      required String id,
+      Value<String?> localMediaStoreId,
+      required String albumId,
+      required String localUri,
+      required String fileName,
+      required String mimeType,
+      Value<int> sizeBytes,
+      Value<int?> width,
+      Value<int?> height,
+      Value<DateTime?> capturedAt,
+      Value<DateTime?> modifiedAt,
+      Value<String?> contentHash,
+      Value<String?> category,
+      Value<int?> sequenceNumber,
+      Value<String?> driveFileId,
+      required String syncStatus,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$MediaItemsTableUpdateCompanionBuilder =
+    MediaItemsCompanion Function({
+      Value<String> id,
+      Value<String?> localMediaStoreId,
+      Value<String> albumId,
+      Value<String> localUri,
+      Value<String> fileName,
+      Value<String> mimeType,
+      Value<int> sizeBytes,
+      Value<int?> width,
+      Value<int?> height,
+      Value<DateTime?> capturedAt,
+      Value<DateTime?> modifiedAt,
+      Value<String?> contentHash,
+      Value<String?> category,
+      Value<int?> sequenceNumber,
+      Value<String?> driveFileId,
+      Value<String> syncStatus,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
 
 class $$MediaItemsTableFilterComposer
     extends Composer<_$AppDatabase, $MediaItemsTable> {
@@ -4913,34 +4919,36 @@ typedef $$AlbumMembersTableProcessedTableManager =
       AlbumMemberRow,
       PrefetchHooks Function()
     >;
-typedef $$SyncJobsTableCreateCompanionBuilder = SyncJobsCompanion Function({
-  required String id,
-  required String type,
-  required String albumId,
-  Value<String?> mediaItemId,
-  Value<int> priority,
-  required String status,
-  Value<int> attemptCount,
-  Value<String?> lastError,
-  Value<DateTime?> nextAttemptAt,
-  required DateTime createdAt,
-  required DateTime updatedAt,
-  Value<int> rowid,
-});
-typedef $$SyncJobsTableUpdateCompanionBuilder = SyncJobsCompanion Function({
-  Value<String> id,
-  Value<String> type,
-  Value<String> albumId,
-  Value<String?> mediaItemId,
-  Value<int> priority,
-  Value<String> status,
-  Value<int> attemptCount,
-  Value<String?> lastError,
-  Value<DateTime?> nextAttemptAt,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<int> rowid,
-});
+typedef $$SyncJobsTableCreateCompanionBuilder =
+    SyncJobsCompanion Function({
+      required String id,
+      required String type,
+      required String albumId,
+      Value<String?> mediaItemId,
+      Value<int> priority,
+      required String status,
+      Value<int> attemptCount,
+      Value<String?> lastError,
+      Value<DateTime?> nextAttemptAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$SyncJobsTableUpdateCompanionBuilder =
+    SyncJobsCompanion Function({
+      Value<String> id,
+      Value<String> type,
+      Value<String> albumId,
+      Value<String?> mediaItemId,
+      Value<int> priority,
+      Value<String> status,
+      Value<int> attemptCount,
+      Value<String?> lastError,
+      Value<DateTime?> nextAttemptAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
 
 class $$SyncJobsTableFilterComposer
     extends Composer<_$AppDatabase, $SyncJobsTable> {
@@ -5335,11 +5343,12 @@ class $$AppSettingsTableTableManager
               $$AppSettingsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$AppSettingsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> key = const Value.absent(),
-            Value<String?> value = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) => AppSettingsCompanion(key: key, value: value, rowid: rowid),
+          updateCompanionCallback:
+              ({
+                Value<String> key = const Value.absent(),
+                Value<String?> value = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AppSettingsCompanion(key: key, value: value, rowid: rowid),
           createCompanionCallback:
               ({
                 required String key,

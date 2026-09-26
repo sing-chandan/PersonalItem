@@ -97,7 +97,8 @@ class GoogleAuthService implements AuthService {
       );
     }
     try {
-      final account = existingAccount ??
+      final account =
+          existingAccount ??
           await _signIn.authenticate(
             scopeHint: AppConstants.googleSignInScopes,
           );

@@ -168,10 +168,12 @@ class DriveRepositoryImpl implements DriveRepository {
   @override
   Future<Uint8List> downloadFile(String id) async {
     final api = await _api();
-    final media = await api.files.get(
-      id,
-      downloadOptions: drive.DownloadOptions.fullMedia,
-    ) as drive.Media;
+    final media =
+        await api.files.get(
+              id,
+              downloadOptions: drive.DownloadOptions.fullMedia,
+            )
+            as drive.Media;
     final builder = BytesBuilder(copy: false);
     await for (final chunk in media.stream) {
       builder.add(chunk);

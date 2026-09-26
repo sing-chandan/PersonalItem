@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/providers.dart';
 import '../../core/errors/app_error.dart';
 import '../../data/repositories/settings_repository.dart';
+import 'google_sign_in_button.dart';
 
 /// Settings: Google account connection and Drive root setup (spec §37, §17, §18).
 class SettingsScreen extends ConsumerWidget {
@@ -43,22 +44,22 @@ class SettingsScreen extends ConsumerWidget {
                         'Connect Google to enable Drive backup and sync.',
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: FilledButton.icon(
-                        onPressed: () => _connect(context, ref),
-                        icon: const Icon(Icons.login),
-                        label: const Text('Connect Google Account'),
-                      ),
-                    ),
-                    if (!auth.supportsInteractiveSignIn)
-                      const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text(
-                          'Note: on web, Google Sign-In requires a configured '
-                          'client id and a rendered button. Full sign-in is '
-                          'tested on an Android device.',
-                          style: TextStyle(color: Colors.grey),
+                    if (auth.supportsInteractiveSignIn)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: FilledButton.icon(
+                          onPressed: () => _connect(context, ref),
+                          icon: const Icon(Icons.login),
+                          label: const Text('Connect Google Account'),
+                        ),
+                      )
+                    else
+                      // Web: use Google's official rendered sign-in button.
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: googleRenderedSignInButton(),
                         ),
                       ),
                   ],
@@ -123,10 +124,57 @@ class SettingsScreen extends ConsumerWidget {
               label: const Text('Set up Drive root'),
             ),
           ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: OutlinedButton.icon(
+              onPressed: authState.value == null
+                  ? null
+                  : () => _importDrive(context, ref),
+              icon: const Icon(Icons.download_for_offline_outlined),
+              label: const Text('Import folders & files from Drive'),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 4, 16, 0),
+            child: Text(
+              'Mirrors your existing Drive folder structure into the app as '
+              'albums (files load on demand).',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+          ),
           const SizedBox(height: 24),
         ],
       ),
     );
+  }
+
+  Future<void> _importDrive(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Importing from Drive...')),
+    );
+    try {
+      final result = await ref
+          .read(driveMirrorServiceProvider)
+          .importTree(ownerUserId: ref.read(currentOwnerIdProvider));
+      ref.invalidate(childAlbumsProvider);
+      ref.invalidate(allAlbumsProvider);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Imported ${result.albumsCreated} folder(s) and '
+            '${result.filesImported} file(s) from Drive.',
+          ),
+        ),
+      );
+    } on AppError catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (e) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not import from Drive.')),
+      );
+    }
   }
 
   Future<void> _connect(BuildContext context, WidgetRef ref) async {
@@ -134,8 +182,9 @@ class SettingsScreen extends ConsumerWidget {
       await ref.read(authServiceProvider).signIn();
     } on AppError catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
       }
     }
   }

@@ -24,6 +24,7 @@ import '../domain/services/album_service.dart';
 import '../domain/services/auth_service.dart';
 import '../domain/services/bulk_media_service.dart';
 import '../domain/services/bulk_rename_service.dart';
+import '../domain/services/drive_mirror_service.dart';
 import '../domain/services/drive_root_service.dart';
 import '../domain/services/linked_album_service.dart';
 import '../domain/services/media_bytes_reader.dart';
@@ -133,6 +134,16 @@ final remoteSyncServiceProvider = Provider<RemoteSyncService>((ref) {
   );
 });
 
+/// Mirrors the existing Drive folder tree into the app (spec §32).
+final driveMirrorServiceProvider = Provider<DriveMirrorService>((ref) {
+  return DriveMirrorService(
+    ref.watch(driveRepositoryProvider),
+    ref.watch(albumRepositoryProvider),
+    ref.watch(mediaRepositoryProvider),
+    ref.watch(driveRootServiceProvider),
+  );
+});
+
 /// Orchestrates album ↔ Drive folder linking (spec §3, §16, §46).
 final linkedAlbumServiceProvider = Provider<LinkedAlbumService>((ref) {
   return LinkedAlbumService(
@@ -228,3 +239,17 @@ final mediaByIdProvider = FutureProvider.family<MediaItem?, String>((
 ) async {
   return ref.watch(mediaRepositoryProvider).getMediaById(id);
 });
+
+/// The cover image for an album (its most recent media item, if any).
+final albumCoverProvider = StreamProvider.family<MediaItem?, String>((
+  ref,
+  albumId,
+) {
+  return ref
+      .watch(mediaRepositoryProvider)
+      .watchMediaInAlbum(albumId)
+      .map((items) => items.isEmpty ? null : items.first);
+});
+
+/// Whether album lists render as a grid (true) or a list (false).
+final albumGridViewProvider = StateProvider<bool>((ref) => true);

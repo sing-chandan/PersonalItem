@@ -16,6 +16,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final rootAlbums = ref.watch(childAlbumsProvider(null));
+    final gridView = ref.watch(albumGridViewProvider);
 
     final user = ref.watch(authStateProvider).value;
 
@@ -23,6 +24,12 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text(AppConstants.appName),
         actions: [
+          IconButton(
+            tooltip: gridView ? 'List view' : 'Grid view',
+            icon: Icon(gridView ? Icons.view_list : Icons.grid_view),
+            onPressed: () =>
+                ref.read(albumGridViewProvider.notifier).state = !gridView,
+          ),
           IconButton(
             tooltip: user == null ? 'Not connected' : user.email,
             icon: Icon(user == null ? Icons.cloud_off : Icons.cloud_done),
@@ -72,13 +79,31 @@ class HomeScreen extends ConsumerWidget {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
-              for (final album in albums)
-                AlbumTile(
-                  album: album,
-                  onTap: () => context.push(Routes.albumPath(album.id)),
-                  onRename: () => _renameAlbum(context, ref, album.id),
-                  onDelete: () => _deleteAlbum(context, ref, album.id),
-                ),
+              if (gridView)
+                GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  childAspectRatio: 0.85,
+                  children: [
+                    for (final album in albums)
+                      AlbumGridCard(
+                        album: album,
+                        onTap: () => context.push(Routes.albumPath(album.id)),
+                        onRename: () => _renameAlbum(context, ref, album.id),
+                        onDelete: () => _deleteAlbum(context, ref, album.id),
+                      ),
+                  ],
+                )
+              else
+                for (final album in albums)
+                  AlbumTile(
+                    album: album,
+                    onTap: () => context.push(Routes.albumPath(album.id)),
+                    onRename: () => _renameAlbum(context, ref, album.id),
+                    onDelete: () => _deleteAlbum(context, ref, album.id),
+                  ),
             ],
           );
         },

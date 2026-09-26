@@ -47,55 +47,87 @@ class AlbumDetailScreen extends ConsumerWidget {
   }
 }
 
-class _AlbumDetailBody extends ConsumerWidget {
+class _AlbumDetailBody extends ConsumerStatefulWidget {
   const _AlbumDetailBody({required this.album});
 
   final Album album;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AlbumDetailBody> createState() => _AlbumDetailBodyState();
+}
+
+class _AlbumDetailBodyState extends ConsumerState<_AlbumDetailBody> {
+  /// Selected media item ids (selection mode is active when non-empty).
+  final Set<String> _selected = {};
+
+  bool get _selectionMode => _selected.isNotEmpty;
+  Album get album => widget.album;
+
+  void _toggleSelect(String id) {
+    setState(() {
+      if (!_selected.remove(id)) _selected.add(id);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final childrenAsync = ref.watch(childAlbumsProvider(album.id));
     final mediaAsync = ref.watch(albumMediaProvider(album.id));
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(album.name),
-        actions: [
-          IconButton(
-            tooltip: 'New sub-album',
-            icon: const Icon(Icons.create_new_folder_outlined),
-            onPressed: () => _createSubAlbum(context, ref),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (v) {
-              if (v == 'repair') _repairLink(context, ref);
-              if (v == 'bulk_rename') _bulkRename(context, ref);
-              if (v == 'sync_drive') _syncFromDrive(context, ref);
-              if (v == 'members') {
-                context.push(Routes.albumMembersPath(album.id));
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'members',
-                child: Text('Share / Members'),
+      appBar: _selectionMode
+          ? AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => setState(_selected.clear),
               ),
-              const PopupMenuItem(
-                value: 'sync_drive',
-                child: Text('Sync from Drive'),
-              ),
-              const PopupMenuItem(
-                value: 'bulk_rename',
-                child: Text('Bulk rename photos'),
-              ),
-              const PopupMenuItem(
-                value: 'repair',
-                child: Text('Repair Drive link'),
-              ),
-            ],
-          ),
-        ],
-      ),
+              title: Text('${_selected.length} selected'),
+              actions: [
+                IconButton(
+                  tooltip: 'Rename selected',
+                  icon: const Icon(Icons.drive_file_rename_outline),
+                  onPressed: () => _renameSelected(context),
+                ),
+              ],
+            )
+          : AppBar(
+              title: Text(album.name),
+              actions: [
+                IconButton(
+                  tooltip: 'New sub-album',
+                  icon: const Icon(Icons.create_new_folder_outlined),
+                  onPressed: () => _createSubAlbum(context, ref),
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (v) {
+                    if (v == 'repair') _repairLink(context, ref);
+                    if (v == 'bulk_rename') _bulkRename(context, ref);
+                    if (v == 'sync_drive') _syncFromDrive(context, ref);
+                    if (v == 'members') {
+                      context.push(Routes.albumMembersPath(album.id));
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'members',
+                      child: Text('Share / Members'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'sync_drive',
+                      child: Text('Sync from Drive'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'bulk_rename',
+                      child: Text('Bulk rename photos'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'repair',
+                      child: Text('Repair Drive link'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
@@ -201,35 +233,113 @@ class _AlbumDetailBody extends ConsumerWidget {
           crossAxisCount: 3,
           crossAxisSpacing: 6,
           mainAxisSpacing: 6,
+          childAspectRatio: 0.78,
         ),
         delegate: SliverChildBuilderDelegate((context, i) {
           final item = media[i];
+          final selected = _selected.contains(item.id);
           return GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => MediaDetailScreen(item: item)),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  MediaThumbnail(item: item),
-                  if (item.syncStatus != SyncStatus.synced)
-                    const Positioned(
-                      right: 4,
-                      top: 4,
-                      child: Icon(
-                        Icons.cloud_off,
-                        size: 16,
-                        color: Colors.white,
-                      ),
+            onTap: () {
+              if (_selectionMode) {
+                _toggleSelect(item.id);
+              } else {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => MediaDetailScreen(item: item),
+                  ),
+                );
+              }
+            },
+            onLongPress: () => _toggleSelect(item.id),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        MediaThumbnail(item: item),
+                        if (item.syncStatus != SyncStatus.synced)
+                          const Positioned(
+                            right: 4,
+                            top: 4,
+                            child: Icon(
+                              Icons.cloud_off,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        if (_selectionMode)
+                          Positioned(
+                            left: 4,
+                            top: 4,
+                            child: Icon(
+                              selected
+                                  ? Icons.check_circle
+                                  : Icons.radio_button_unchecked,
+                              color: selected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.white,
+                            ),
+                          ),
+                        if (selected)
+                          Container(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.25),
+                          ),
+                      ],
                     ),
-                ],
-              ),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  item.fileName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
             ),
           );
         }, childCount: media.length),
       ),
+    );
+  }
+
+  /// Renames the currently selected images by category (spec §26). Updates
+  /// Drive names for already-synced items via BulkMediaService.
+  Future<void> _renameSelected(BuildContext context) async {
+    final all = await ref
+        .read(mediaRepositoryProvider)
+        .getMediaInAlbum(album.id, limit: 100000);
+    final selectedItems = all.where((m) => _selected.contains(m.id)).toList()
+      ..sort((a, b) {
+        final at = a.capturedAt ?? a.createdAt;
+        final bt = b.capturedAt ?? b.createdAt;
+        return at.compareTo(bt);
+      });
+    if (selectedItems.isEmpty || !context.mounted) return;
+    final options = await promptBulkRename(
+      context,
+      categories: ref.read(categoriesProvider),
+      photoCount: selectedItems.length,
+    );
+    if (options == null || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final updated = await ref
+        .read(bulkMediaServiceProvider)
+        .rename(
+          items: selectedItems,
+          category: options.category,
+          startNumber: options.startNumber,
+        );
+    setState(_selected.clear);
+    messenger.showSnackBar(
+      SnackBar(content: Text('Renamed ${updated.length} photo(s).')),
     );
   }
 
@@ -294,8 +404,9 @@ class _AlbumDetailBody extends ConsumerWidget {
         .getMediaInAlbum(album.id, limit: 100000);
     if (!context.mounted) return;
     if (media.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('No photos to rename.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No photos to rename.')));
       return;
     }
     // Order by capture time (fallback createdAt), oldest first, for numbering.

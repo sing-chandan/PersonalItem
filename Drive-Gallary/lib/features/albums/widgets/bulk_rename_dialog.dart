@@ -62,9 +62,9 @@ Future<BulkRenameOptions?> promptBulkRename(
                 child: const Text('Cancel'),
               ),
               FilledButton(
-                onPressed: () =>
-                    Navigator.of(context)
-                        .pop(BulkRenameOptions(category, start)),
+                onPressed: () => Navigator.of(
+                  context,
+                ).pop(BulkRenameOptions(category, start)),
                 child: const Text('Rename'),
               ),
             ],
