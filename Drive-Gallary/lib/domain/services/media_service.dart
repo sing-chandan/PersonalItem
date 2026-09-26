@@ -7,7 +7,7 @@ import '../repositories/media_repository.dart';
 /// Orchestrates adding/removing media within albums. Adding always works
 /// offline (spec §23); network sync is handled separately by the sync engine.
 class MediaService {
-  MediaService(this._repo, {this._ids = const IdGenerator()});
+  MediaService(this._repo, [this._ids = const IdGenerator()]);
 
   final MediaRepository _repo;
   final IdGenerator _ids;
